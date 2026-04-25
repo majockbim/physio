@@ -1,1 +1,0 @@
-// for transmitting via bluetooth
