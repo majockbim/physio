@@ -33,7 +33,8 @@ class MovementQualityInference:
             self.model.load_state_dict(torch.load(model_weights_path, map_location=self.device))
             print(f"Successfully loaded weights from: {model_weights_path}")
         except FileNotFoundError:
-            print(f"Warning: No weights found at {model_weights_path}. Using initialized weights.")
+            print(f"Warning: No weights found at {model_weights_path}. Exiting.")
+            raise RuntimeError
             
         self.model.to(self.device)
         self.model.eval() # CRITICAL: Disables Dropout for live inference
@@ -70,6 +71,9 @@ class MovementQualityInference:
         Executes the full pipeline: preprocesses live data, runs inference without gradients,
         and returns the gamified 0-100 score.
         """
+        
+        # print(f"Raw sensor data shape: {raw_sensor_data.shape}")
+        
         # 1. Format the data
         model_input = self.preprocess_live_buffer(raw_sensor_data)
         
@@ -87,20 +91,3 @@ class MovementQualityInference:
         # 3. Gamify the score (0 to 100)
         live_score = int(healthy_probability * 100)
         return live_score
-
-# ==========================================
-# 3. Mock Implementation (How to use it)
-# ==========================================
-if __name__ == "__main__":
-    # Example: Instantiating the Toothbrushing model
-    inference_engine = MovementQualityInference(
-        movement_name="BrushTeeth", 
-        model_weights_path="models/BrushTeeth_best_weights.pt"
-    )
-    
-    # Mocking 85 time-steps of live data coming from the Arduino (12 channels)
-    mock_live_data = np.random.rand(85, 12) 
-    
-    # Get the score
-    score = inference_engine.get_live_score(mock_live_data)
-    print(f"Live Form Score: {score}/100")

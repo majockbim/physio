@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 
 class JUIMUDataset(Dataset):
-    def __init__(self, file_paths, patient_info_path, labels, *, debug=False):
+    def __init__(self, file_paths, patient_info_path, labels, *, training=False, debug=False):
         """
         file_paths: List of string paths to the individual CSV files.
         patient_info_path: String path to the patient info file, containing which side is affected by stroke.
@@ -14,6 +14,7 @@ class JUIMUDataset(Dataset):
         self.file_paths = file_paths
         self.patient_info_path = patient_info_path
         self.labels = labels
+        self.training = training
         self.debug = debug
 
     def __len__(self):
@@ -81,7 +82,13 @@ class JUIMUDataset(Dataset):
         # 3. Convert to PyTorch Tensor
         tensor_features = torch.tensor(raw_features, dtype=torch.float32)
         
-        # 4. Apply Linear Interpolation
+        # 4. Apply Z-score normalization
+        # This is because the scales of the accelerometers vs. gyroscopes are quite different
+        # mean = tensor_features.mean(dim=0, keepdim=True)
+        # std = tensor_features.std(dim=0, keepdim=True) + 1e-7 # add epsilon to prevent div by zero
+        # tensor_features = (tensor_features - mean) / std
+        
+        # 5. Apply Linear Interpolation
         # PyTorch's F.interpolate expects 1D data to be shaped as: [batch_size, channels, sequence_length]
         # We must transpose our (length, 12) tensor to (12, length) and add a dummy batch dimension.
         tensor_features = tensor_features.transpose(0, 1).unsqueeze(0) # Shape: (1, 12, variable_length)
@@ -97,8 +104,14 @@ class JUIMUDataset(Dataset):
         # Reshape back to the plan's required output: (20, 12)
         final_features = interpolated.squeeze(0).transpose(0, 1)
         
-        # 5. Format Label
+        # 6. Format Label
         label = torch.tensor(self.labels[idx], dtype=torch.long)
+        
+        if self.training:
+            noise_factor = 0.01
+            # noise_factor = 0.0
+            noise = torch.randn_like(final_features) * noise_factor
+            final_features = final_features + noise
         
         return final_features, label
       

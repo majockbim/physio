@@ -81,13 +81,40 @@ class MovementTrainer:
 
     def save_model(self, save_dir="models"):
         """
-        Saves the trained model weights to a .pt file.
+        Saves the trained model as a .pt2 file with dynamic batch size using torch.export.
         """
+        
+        # Get the device used for the model
+        device = next(self.model.parameters()).device
+        
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
             
+        np_input_path = os.path.join(save_dir, "mobile", f"{self.movement_name}_input.npy")
         save_path = os.path.join(save_dir, f"{self.movement_name}_weights.pt")
+        mobile_save_path = os.path.join(save_dir, "mobile", f"{self.movement_name}_weights.pt2")
+        
+        # --------------------------------------------------
+        # SAVE WEIGHTS FOR INFERENCE
         torch.save(self.model.state_dict(), save_path)
-        print(f"[{self.movement_name}] Weights successfully saved to {save_path}")
+        
+        # --------------------------------------------------
+        # EXPORT FOR MOBILE
+        # Set model to eval mode for export
+        self.model.eval()
+        
+        # Create example input with batch size 1: (batch, 20 windows, 12 channels)
+        input_data = np.random.randn(1, 20, 12).astype(np.float32)
+        np.save(np_input_path, input_data)
+        example_input = (torch.randn(1, 20, 12).to(device),)
+    
+        ep = torch.export.export(
+            self.model,
+            args=example_input,
+        )
+        
+        # Save the exported program
+        torch.export.save(ep, mobile_save_path)
+        print(f"[{self.movement_name}] Exported model successfully saved to {mobile_save_path}")
     
 __all__ = ["MovementTrainer", ]

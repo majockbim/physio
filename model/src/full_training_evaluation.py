@@ -96,6 +96,7 @@ def full_training_evaluation(movement_name, *, debug=False):
     print("VERIFYING SCORES ON UNSEEN TEST DATA")
     print("="*40)
     
+    # Inference uses standard PyTorch dict, not mobile .pt2 export
     weights_path = MODEL_PATH + f"{movement_name}_weights.pt"
     inference_engine = MovementQualityInference(movement_name=movement_name, model_weights_path=weights_path)
     
@@ -159,4 +160,4 @@ if __name__ == "__main__":
         
     print(f"Overall overall accuracy for {total_test_cases} test cases: {total_correct}/{total_test_cases}); " +
           f"{100 * (total_correct/total_test_cases)}% accuracy")
-    print(f"False positives: {false_positives}, false negatives: {false_negatives}")
+    print(f"False positives: {total_false_pos}, false negatives: {total_false_neg}")
