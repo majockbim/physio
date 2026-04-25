@@ -86,7 +86,7 @@ class JUIMUDataset(Dataset):
         final_features = interpolated.squeeze(0).transpose(0, 1)
         
         # 5. Format Label
-        label = torch.tensor([self.labels[idx]], dtype=torch.float32)
+        label = torch.tensor(self.labels[idx], dtype=torch.long)
         
         return final_features, label
       

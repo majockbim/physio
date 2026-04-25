@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 class ROM_CNN(nn.Module):
-    def __init__(self):
+    def __init__(self, *, debug=False):
         super(ROM_CNN, self).__init__()
         
         # PyTorch Conv1d expects shape: (Batch, Channels, Length)

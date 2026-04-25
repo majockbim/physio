@@ -2,8 +2,10 @@ import torch
 import torch.nn as nn
 
 class ADL_CNN(nn.Module):
-    def __init__(self):
+    def __init__(self, *, debug=False):
         super(ADL_CNN, self).__init__()
+        
+        self.debug = debug
         
         # PyTorch Conv1d expects shape: (Batch, Channels, Length)
         # We will transpose the (Batch, 20, 12) input to (Batch, 12, 20) in the forward pass.
@@ -32,7 +34,11 @@ class ADL_CNN(nn.Module):
 
     def forward(self, x):
         # 1. Transpose: (Batch, 20 windows, 12 channels) -> (Batch, 12 channels, 20 windows)
+        if self.debug:
+            print(f"DEBUG: Input shape to model: {x.shape}")
         x = x.transpose(1, 2)
+        if self.debug:
+            print(f"DEBUG: Output shape to model: {x.shape}")
         
         # 2. Feature Extraction
         x = self.relu(self.conv1(x))
