@@ -15,7 +15,7 @@ Build 6 separate 1-D CNN models (PyTorch) to classify movement quality for strok
 ✓ Sensors: Right wrist (sensor 1) + right upper arm (sensor 4)
 ✓ Movements: 7 total:
   - ADL (3): TakePill, PourWater, BrushTeeth
-  - Note: ROM movements (ElbFlex, ShldFlex, ShldAbd, FrontSupinationPronation) not available in current dataset
+  - ROM (4): ElbFlex, ShFlex90, ShHorAdd, FrontSupPro
 ✓ Input features: 2 sensors (RW + RUA), gyro + accel only (12 channels, no magnetometer)
 ✓ Windowing: Linear interpolation → 20 windows per segment
 ✓ Train/val/test: Per-participant split (LOSO-CV on Stroke group)

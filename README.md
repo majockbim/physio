@@ -14,3 +14,5 @@ URL = {https://www.mdpi.com/1424-8220/24/1/210},
 ISSN = {1424-8220},
 DOI = {10.3390/s24010210}
 }
+
+Github for above dataset: https://github.com/youngminoh7/JU-IMU

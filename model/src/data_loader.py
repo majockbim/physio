@@ -5,28 +5,63 @@ import pandas as pd
 import numpy as np
 
 class JUIMUDataset(Dataset):
-    def __init__(self, file_paths, labels):
+    def __init__(self, file_paths, patient_info_path, labels, *, debug=False):
         """
         file_paths: List of string paths to the individual CSV files.
+        patient_info_path: String path to the patient info file, containing which side is affected by stroke.
         labels: List of integers (1 for ND/Healthy, 0 for Stroke/Affected).
         """
         self.file_paths = file_paths
+        self.patient_info_path = patient_info_path
         self.labels = labels
+        self.debug = debug
 
     def __len__(self):
         return len(self.file_paths)
+    
+    def _get_sensor_data(self, df, sensor_id: int):
+        """
+        df: Dataframe to get columns from.
+        sensor_id: Int from 1 to 5 corresponding to sensor specified at https://github.com/youngminoh7/JU-IMU.
+        """
+        
+        # Fix 1-indexing to 0-indexing
+        sensor_id -= 1
+        # We want the first 6 elements
+        SENSOR_CHANNEL_COUNT = 6
+        ORIGINAL_CHANNELS_PER_SENSOR = 9
+        lower_index = sensor_id * ORIGINAL_CHANNELS_PER_SENSOR
+        upper_index = lower_index + SENSOR_CHANNEL_COUNT
+        return df.columns[lower_index:upper_index]
 
     def __getitem__(self, idx):
         # 1. Load the raw variable-length CSV
-        df = pd.read_csv(self.file_paths[idx])
+        patient_file_path = self.file_paths[idx]
+        df = pd.read_csv(patient_file_path)
+        patient_info_df = pd.read_csv(self.patient_info_path)
+        # Files have name format "[ROM/ADL]_[PATIENT_ID]_...", where PATIENT_ID is ND[#] or Stroke[#]
+        patient_id = patient_file_path.split('_')[1]
+        patient_info = patient_info_df.loc[(patient_info_df['id'] == patient_id).idxmax()]
         
         # 2. Extract the 12 Channels (Sensor 1 & Sensor 4)
         # The dataset has 5 sensors * 9 channels = 45 total columns.
         # We need cols 0-5 (Sensor 1) and cols 27-32 (Sensor 4).
-        # Adjust these specific column names/indices to match your exact CSV headers.
-        sensor_1_cols = df.columns[0:6]   # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
-        sensor_4_cols = df.columns[27:33] # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
-        selected_cols = list(sensor_1_cols) + list(sensor_4_cols)
+        
+        # If patient has left hemiparesis, exchange sensor data
+        if patient_info['side'] == 'L':
+            side = 'left'
+            # Switch from column 2 to 1, 5 to 4
+            wrist_columns = self._get_sensor_data(df, 2)   # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
+            bicep_columns = self._get_sensor_data(df, 5) # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
+        else:
+            side = 'right'
+            wrist_columns = self._get_sensor_data(df, 1)   # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
+            bicep_columns = self._get_sensor_data(df, 4) # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
+            
+        selected_cols = list(wrist_columns) + list(bicep_columns)
+        if self.debug:
+            print(f'Patient has {side} hemiparesis, with id {patient_id} and info {patient_info}')
+            print(f'First data values are: {df[selected_cols].head()}')
         
         # Extract raw values -> Shape: (variable_length, 12)
         raw_features = df[selected_cols].values 
