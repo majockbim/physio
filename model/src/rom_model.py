@@ -49,7 +49,7 @@ class ROM_CNN(nn.Module):
         x = self.fc2(x)
         
         # 5. Probability Conversion
-        out = self.softmax(x)
-        return out
+        # x = self.softmax(x)
+        return x
     
 __all__ = ["ROM_CNN", ]
