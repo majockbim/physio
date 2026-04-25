@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "../include/imu/imu_filter.hpp"
+#include "../include/bluetooth/ble_manager.hpp"
 
 // bicep uses hardware I2C
 MMA7660Filter bicepIMU(&Wire, 0.10);
