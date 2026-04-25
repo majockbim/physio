@@ -2,6 +2,7 @@
 #include <Arduino.h>
 
 struct __atribute__((packed)) SensorPayload {
+    uint32_t timestamp_ms;
     float bicep_pitch;
     float bicel_roll;
     float wrist_pitch;
