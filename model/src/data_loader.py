@@ -19,6 +19,37 @@ class JUIMUDataset(Dataset):
     def __len__(self):
         return len(self.file_paths)
     
+    def get_patient_data(self, df, patient_file_path):
+        """
+        Returns the sensor data corresponding to the given patient_file_path
+        """
+        
+        patient_info_df = pd.read_csv(self.patient_info_path)
+        # Files have name format "[ROM/ADL]_[PATIENT_ID]_...", where PATIENT_ID is ND[#] or Stroke[#]
+        patient_id = patient_file_path.split('_')[1]
+        patient_info = patient_info_df.loc[(patient_info_df['id'] == patient_id).idxmax()]
+        
+        # 2. Extract the 12 Channels (Sensor 1 & Sensor 4)
+        # The dataset has 5 sensors * 9 channels = 45 total columns.
+        # We need cols 0-5 (Sensor 1) and cols 27-32 (Sensor 4).
+        # Uses sensors 2 and 5 for left hemiparesis
+        
+        # If patient has left hemiparesis, exchange sensor data
+        if patient_info['side'] == 'L':
+            side = 'left'
+            # Switch from column 2 to 1, 5 to 4
+            wrist_columns = self._get_sensor_data(df, 2)   # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
+            bicep_columns = self._get_sensor_data(df, 5) # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
+        else:
+            side = 'right'
+            wrist_columns = self._get_sensor_data(df, 1)   # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
+            bicep_columns = self._get_sensor_data(df, 4) # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
+        
+        if self.debug:
+            print(f'Patient has {side} hemiparesis, with id {patient_id} and info {patient_info}')
+            
+        return list(wrist_columns) + list(bicep_columns)
+            
     def _get_sensor_data(self, df, sensor_id: int):
         """
         df: Dataframe to get columns from.
@@ -38,29 +69,10 @@ class JUIMUDataset(Dataset):
         # 1. Load the raw variable-length CSV
         patient_file_path = self.file_paths[idx]
         df = pd.read_csv(patient_file_path)
-        patient_info_df = pd.read_csv(self.patient_info_path)
-        # Files have name format "[ROM/ADL]_[PATIENT_ID]_...", where PATIENT_ID is ND[#] or Stroke[#]
-        patient_id = patient_file_path.split('_')[1]
-        patient_info = patient_info_df.loc[(patient_info_df['id'] == patient_id).idxmax()]
-        
-        # 2. Extract the 12 Channels (Sensor 1 & Sensor 4)
-        # The dataset has 5 sensors * 9 channels = 45 total columns.
-        # We need cols 0-5 (Sensor 1) and cols 27-32 (Sensor 4).
-        
-        # If patient has left hemiparesis, exchange sensor data
-        if patient_info['side'] == 'L':
-            side = 'left'
-            # Switch from column 2 to 1, 5 to 4
-            wrist_columns = self._get_sensor_data(df, 2)   # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
-            bicep_columns = self._get_sensor_data(df, 5) # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
-        else:
-            side = 'right'
-            wrist_columns = self._get_sensor_data(df, 1)   # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
-            bicep_columns = self._get_sensor_data(df, 4) # acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z
             
-        selected_cols = list(wrist_columns) + list(bicep_columns)
+        selected_cols = self.get_patient_data(df, patient_file_path)
+        
         if self.debug:
-            print(f'Patient has {side} hemiparesis, with id {patient_id} and info {patient_info}')
             print(f'First data values are: {df[selected_cols].head()}')
         
         # Extract raw values -> Shape: (variable_length, 12)
@@ -90,4 +102,4 @@ class JUIMUDataset(Dataset):
         
         return final_features, label
       
-__all__ = ["JUIMUDataset"]
+__all__ = ["JUIMUDataset", ]
