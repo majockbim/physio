@@ -157,7 +157,9 @@ void setup() {
     Serial.println("✓");
 
     // Init Bluetooth
-    Serial.println("Initializing BLE...")
+    Serial.println("Initializing BLE...");
+
+    init_BLE();
     
     Serial.println("\nStarting data stream...\n");
 }
