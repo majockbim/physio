@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "../include/imu_filter.hpp"
+#include "../include/imu/imu_filter.hpp"
 
 // bicep uses hardware I2C
 MMA7660Filter bicepIMU(&Wire, 0.10);
