@@ -55,6 +55,13 @@ The iOS application serves as the command center for the patient, processing the
 * **Exercise Guide & Gamification:** Translates the AI's 0–100 movement quality score into a visual performance dashboard.
 * **Audio Feedback:** Integrates **ElevenLabs TTS** to provide encouraging, real-time voice guidance to the patient based on their workout selection and current performance score.
 
+## 📚 References & Resources
+
+* **JU-IMU Dataset & AI Research:**
+  Oh, Y., Choi, S.-A., Shin, Y., Jeong, Y., Lim, J., & Kim, S. (2024). *Investigating Activity Recognition for Hemiparetic Stroke Patients Using Wearable Sensors: A Deep Learning Approach with Data Augmentation*. Sensors, 24(1), 210. [DOI: 10.3390/s24010210](https://doi.org/10.3390/s24010210)
+* **Dataset Repository:** [youngminoh7/JU-IMU on GitHub](https://github.com/youngminoh7/JU-IMU)
+* **Hardware Datasheet:** [MPU-6050 Product Specification (PDF)](https://cdn.sparkfun.com/datasheets/Sensors/Accelerometers/RM-MPU-6000A.pdf)
+
 <br>
 
 Made with ❤️ for LA Hacks 2026 by [Mj](https://github.com/majockbim), [Ethan](https://github.com/ethan-pham25), [Scott](https://github.com/Scott170c), [Ian](https://github.com/YodaLightsabr)
