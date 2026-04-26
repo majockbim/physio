@@ -5,3 +5,5 @@ model/LAHacks2026.egg-info/
 model/src/__pycache__/
 model/test/models/
 model/models/
+.pio
+.vscode
