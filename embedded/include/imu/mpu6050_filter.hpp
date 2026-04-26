@@ -28,6 +28,9 @@ private:
     float filtered_pitch = 0.0;
     float filtered_roll = 0.0;
 
+    float filtered_yaw = 0.0;
+    unsigned long last_update_time = 0; // for dt
+
 public:
     MPU6050Filter(TwoWire* bus, uint8_t address, float smoothing_factor = 0.50) {
         i2c_bus = bus;
@@ -58,6 +61,14 @@ public:
     }
     
     void update() {
+        // calculate dt
+        unsigned long current_time = micros();
+        float dt = 0.0f;
+        if (last_update_time > 0) {
+            dt = (current_time - last_update_time) / 1000000.0f;
+        }
+        last_update_time = current_time;
+
         i2c_bus->beginTransmission(sensor_address);
         i2c_bus->write(REG_ACCEL_XOUT_H);
         i2c_bus->endTransmission(false);
@@ -103,11 +114,18 @@ public:
             
             filtered_pitch = (alpha * raw_pitch) + ((1.0 - alpha) * filtered_pitch);
             filtered_roll  = (alpha * raw_roll)  + ((1.0 - alpha) * filtered_roll);
+
+            // yaw
+            if (dt > 0.0f) {
+                filtered_yaw += (gyro_filt.z * (180.0f / PI)) * dt;
+            }
         }
     }
     
     float getPitch() { return filtered_pitch; }
     float getRoll() { return filtered_roll; }
+    float getYaw() { return filtered_yaw; }
+
     AxisData getAccel() { return accel_filt; }
     AxisData getGyro() { return gyro_filt; }
 };

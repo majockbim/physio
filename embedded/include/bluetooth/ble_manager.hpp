@@ -2,13 +2,16 @@
 #include <Arduino.h>
 
 struct __attribute__((packed)) SensorPayload {
-    uint32_t timestamp_ms; // tell swift when data was recorded (every 12ms for 80Hz goal)
-
+    uint32_t timestamp_ms;
+    
     float bicep_pitch;
     float bicep_roll;
+    float bicep_yaw;
+    
     float wrist_pitch;
     float wrist_roll;
-
+    float wrist_yaw;
+    
     float bicep_accel_x;
     float bicep_accel_y;
     float bicep_accel_z;

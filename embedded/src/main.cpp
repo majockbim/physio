@@ -64,17 +64,22 @@ void loop() {
 
         // pack data
         currentData.timestamp_ms = millis();
+        
         currentData.bicep_pitch = bicepIMU.getPitch();
         currentData.bicep_roll = bicepIMU.getRoll();
-        currentData.wrist_pitch = wristIMU.getPitch();
-        currentData.wrist_roll = wristIMU.getRoll();
-
-        Serial.printf("T:%lu | Bicep(P:%.1f, R:%.1f) | Wrist(P:%.1f, R:%.1f)\n", 
-            currentData.timestamp_ms,
-            currentData.bicep_pitch, currentData.bicep_roll,
-            currentData.wrist_pitch, currentData.wrist_roll
-        );
+        currentData.bicep_yaw = bicepIMU.getYaw(); // Grab Yaw
         
+        currentData.wrist_pitch = wristIMU.getPitch(); 
+        currentData.wrist_roll = wristIMU.getRoll();
+        currentData.wrist_yaw = wristIMU.getYaw(); // Grab Yaw
+
+        // Update your print statement to look super pro
+        Serial.printf("T:%lu | Bicep(P:%.1f, R:%.1f, Y:%.1f) | Wrist(P:%.1f, R:%.1f, Y:%.1f)\n", 
+            currentData.timestamp_ms,
+            currentData.bicep_pitch, currentData.bicep_roll, currentData.bicep_yaw,
+            currentData.wrist_pitch, currentData.wrist_roll, currentData.wrist_yaw
+        );
+
         notify_BLE();
     }
 }
