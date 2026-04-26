@@ -11,27 +11,34 @@ class CNN(nn.Module):
         # PyTorch Conv1d expects shape: (Batch, Channels, Length)
         # We will transpose the (Batch, INTERPOLATION_SIZE, 12) input in the forward pass.
         
-        # 3 Conv blocks with BatchNorm for stability on small datasets
-        # ~38K params total (vs ~320K before) — better suited for ~35 training samples
+        # 3 Conv blocks with BatchNorm.
+        # NOTE: Using BatchNorm (not GroupNorm) for mobile-export compatibility.
+        # Mobile NN runtimes (SNPE/QNN/CoreML/TFLite — used by Zetic) don't reliably
+        # support GroupNorm as a first-class op, so it breaks .pt2 -> mobile conversion.
+        # BatchNorm trains fine here because the unified model uses batch_size=32 over
+        # ~247 samples (much larger than per-movement training with ~35 samples).
         self.features = nn.Sequential(
             # Layer 1: 128 -> 64
             nn.Conv1d(n_channels, 32, kernel_size=7, stride=2, padding=3),
-            nn.GroupNorm(8, 32),
+            nn.BatchNorm1d(32),
             nn.ReLU(),
             
             # Layer 2: 64 -> 32
             nn.Conv1d(32, 64, kernel_size=5, stride=2, padding=2),
-            nn.GroupNorm(8, 64),
+            nn.BatchNorm1d(64),
             nn.ReLU(),
             
             # Layer 3: 32 -> 16
             nn.Conv1d(64, 128, kernel_size=3, stride=2, padding=1),
-            nn.GroupNorm(8, 128),
+            nn.BatchNorm1d(128),
             nn.ReLU(),
         )
         
-        # Global average pooling removes need for large FC layer & makes model input-length flexible
-        self.pool = nn.AdaptiveAvgPool1d(1)
+        # Use a fixed AvgPool1d(kernel=16) instead of AdaptiveAvgPool1d for better
+        # mobile converter support (some converters reject adaptive pooling). Since
+        # input length is fixed at INTERPOLATION_SIZE=128 and the 3 stride-2 convs
+        # bring it to 16, this is equivalent.
+        self.pool = nn.AvgPool1d(kernel_size=16)
         self.dropout = nn.Dropout(p=0.5)
         
         # Output: 2 classes (0 = Stroke, 1 = Healthy)
