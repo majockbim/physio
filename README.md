@@ -21,9 +21,9 @@ The wearable component is built from the ground up for low latency and high data
 * **Microcontroller:** ESP32-C3 powered by a 4.8V LiPo battery.
 * **Dual Sensors:** 2x MPU6050 (Bicep and Wrist). Both sensors run on a shared hardware I2C bus utilizing custom addressing (`0x68` for Bicep, `0x69` via AD0 pin for Wrist) to prevent collisions.
 * **Diagnostics:** An integrated I2C OLED screen (`0x3C`) provides real-time device status and debugging.
-* **Custom BLE Pipeline:** * The ESP32 calculates Delta Time (`dt`) to perform local math (Pitch, Roll, and Yaw integration) before transmission.
+* **Custom BLE Pipeline:** * The ESP32 unpacks and filters accelerometer and gyroscope axes before transmission.
   * An expanded MTU size blasts a tightly packed **76-byte payload** over Bluetooth Low Energy (BLE) at **80Hz**.
-  * Payload includes: `timestamp`, `bicep_PRY`, `wrist_PRY`, and raw `accel`/`gyro` channels for both sensors.
+  * Payload includes: `timestamp`, raw `accel`/`gyro`, and `bicep_PRY`, `wrist_PRY` channels for both sensors.
 
 ---
 
