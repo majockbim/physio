@@ -1,3 +1,4 @@
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -37,6 +38,21 @@ class MovementQualityInference:
         self.model.to(self.device)
         self.model.eval() # CRITICAL: Disables Dropout for live inference
 
+        # Load GLOBAL normalization stats next to the weights file (e.g. ElbFlex_stats.npz).
+        # Falls back to legacy per-sample Z-score if the stats file is missing
+        # (so older models still load).
+        self.global_mean = None
+        self.global_std = None
+        stats_path = model_weights_path.replace("_weights.pt", "_stats.npz")
+        if os.path.exists(stats_path):
+            stats = np.load(stats_path)
+            self.global_mean = stats["mean"].astype(np.float32)
+            self.global_std = stats["std"].astype(np.float32)
+            print(f"Loaded global normalization stats from: {stats_path}")
+        else:
+            print(f"WARNING: No stats file at {stats_path}; falling back to per-sample Z-score "
+                  "(may not match training preprocessing).")
+
     def preprocess_live_buffer(self, raw_sensor_data):
         """
         Takes a raw 2D numpy array of incoming live sensor data (variable length, 12 channels)
@@ -47,8 +63,11 @@ class MovementQualityInference:
         # Expected input shape: (variable_length, 12)
         tensor_features = torch.tensor(raw_sensor_data, dtype=torch.float32)
         
-        # CRITICAL: Apply the same Z-score normalization used during training
-        tensor_features = normalize_features(tensor_features)
+        # CRITICAL: Apply the same normalization used during training
+        # (global per-channel if stats were loaded; else per-sample Z-score fallback)
+        tensor_features = normalize_features(
+            tensor_features, self.global_mean, self.global_std
+        )
         
         # Interpolate to fixed temporal resolution (matches training)
         tensor_features = interpolate_to_fixed_length(tensor_features)

@@ -6,11 +6,60 @@ import numpy as np
 
 from cnn import INTERPOLATION_SIZE
 
-def normalize_features(tensor_features):
-    """Apply per-sample Z-score normalization across the time dimension."""
+def normalize_features(tensor_features, global_mean=None, global_std=None):
+    """
+    Normalize the (T, 12) signal.
+
+    If global_mean and global_std (each shape (12,)) are provided, applies
+    (x - global_mean) / global_std using stats computed once across the entire
+    training set. This PRESERVES cross-patient magnitude differences which are
+    a strong stroke-vs-healthy discriminator.
+
+    If no stats are provided, falls back to legacy per-sample Z-score
+    (which destroys cross-patient magnitude information — kept only for
+    backward compatibility).
+    """
+    if global_mean is not None and global_std is not None:
+        if not isinstance(global_mean, torch.Tensor):
+            global_mean = torch.tensor(global_mean, dtype=tensor_features.dtype)
+            global_std = torch.tensor(global_std, dtype=tensor_features.dtype)
+        return (tensor_features - global_mean) / (global_std + 1e-7)
     mean = tensor_features.mean(dim=0, keepdim=True)
     std = tensor_features.std(dim=0, keepdim=True) + 1e-7
     return (tensor_features - mean) / std
+
+
+def compute_global_stats(file_paths, patient_info_paths):
+    """
+    One-pass scan of all training files to compute per-channel mean and std.
+
+    Iterates the SAME 12-channel side-aware extraction used during training,
+    concatenates all samples along the time dimension, and returns
+    (mean, std) each of shape (12,) as numpy arrays.
+    """
+    if isinstance(patient_info_paths, str):
+        patient_info_paths = [patient_info_paths] * len(file_paths)
+
+    # Build a temporary dataset purely to reuse get_patient_data side-aware logic
+    dummy_labels = [0] * len(file_paths)
+    tmp = JUIMUDataset(file_paths, patient_info_paths, dummy_labels)
+
+    # Online accumulation: avoid concatenating all files in memory
+    n = 0
+    sum_x = np.zeros(12, dtype=np.float64)
+    sum_x2 = np.zeros(12, dtype=np.float64)
+    for fpath, info in zip(file_paths, patient_info_paths):
+        df = pd.read_csv(fpath)
+        cols = tmp.get_patient_data(df, fpath, info)
+        x = df[cols].values.astype(np.float64)  # (T, 12)
+        n += x.shape[0]
+        sum_x += x.sum(axis=0)
+        sum_x2 += (x * x).sum(axis=0)
+    mean = sum_x / n
+    var = sum_x2 / n - mean * mean
+    var = np.maximum(var, 1e-9)
+    std = np.sqrt(var)
+    return mean.astype(np.float32), std.astype(np.float32)
 
 def interpolate_to_fixed_length(tensor_features, size=INTERPOLATION_SIZE):
     """Interpolate (variable_length, 12) tensor to (size, 12)."""
@@ -75,11 +124,15 @@ def augment_time_warp(features, sigma=0.2):
 
 
 class JUIMUDataset(Dataset):
-    def __init__(self, file_paths, patient_info_path, labels, *, training=False, debug=False):
+    def __init__(self, file_paths, patient_info_path, labels, *,
+                 training=False, debug=False,
+                 global_mean=None, global_std=None):
         """
         file_paths: List of string paths to the individual CSV files.
         patient_info_path: String path OR list of string paths (one per file) to the patient info file(s).
         labels: List of integers (1 for ND/Healthy, 0 for Stroke/Affected).
+        global_mean, global_std: numpy arrays of shape (12,) for per-channel global
+            normalization. If None, falls back to legacy per-sample Z-score.
         """
         self.file_paths = file_paths
         # Support both single path and per-file paths for unified training
@@ -90,6 +143,13 @@ class JUIMUDataset(Dataset):
         self.labels = labels
         self.training = training
         self.debug = debug
+        # Pre-convert to torch tensors so __getitem__ doesn't reconvert each call
+        if global_mean is not None and global_std is not None:
+            self.global_mean = torch.tensor(global_mean, dtype=torch.float32)
+            self.global_std = torch.tensor(global_std, dtype=torch.float32)
+        else:
+            self.global_mean = None
+            self.global_std = None
 
     def __len__(self):
         return len(self.file_paths)
@@ -159,15 +219,21 @@ class JUIMUDataset(Dataset):
         # 3. Convert to PyTorch Tensor
         tensor_features = torch.tensor(raw_features, dtype=torch.float32)
         
-        # 4. Apply Z-score normalization
-        # This is because the scales of the accelerometers vs. gyroscopes are quite different
-        tensor_features = normalize_features(tensor_features)
-        
-        # 5. Apply Data Augmentation (training only, before interpolation for max diversity)
+        # 4. Apply Data Augmentation BEFORE normalization (training only)
+        # Augmenting before normalization keeps the augmented values in the same
+        # absolute scale as raw signals, so the global normalizer maps them
+        # consistently. This preserves the magnitude-based stroke signal.
         if self.training:
             tensor_features = augment_axis_rotation(tensor_features)
             tensor_features = augment_magnitude_scaling(tensor_features)
-            # Gaussian jitter
+
+        # 5. Apply normalization (global per-channel if stats provided, else per-sample Z-score)
+        tensor_features = normalize_features(
+            tensor_features, self.global_mean, self.global_std
+        )
+
+        # 6. Add small jitter AFTER normalization (training only)
+        if self.training:
             tensor_features = tensor_features + torch.randn_like(tensor_features) * 0.03
         
         # 6. Apply Linear Interpolation to fixed temporal resolution
@@ -178,4 +244,4 @@ class JUIMUDataset(Dataset):
         
         return final_features, label
       
-__all__ = ["JUIMUDataset", "normalize_features", "interpolate_to_fixed_length"]
+__all__ = ["JUIMUDataset", "normalize_features", "interpolate_to_fixed_length", "compute_global_stats"]

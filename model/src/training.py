@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 
 from cnn import CNN, INTERPOLATION_SIZE
-from data_loader import JUIMUDataset
+from data_loader import JUIMUDataset, compute_global_stats
 
 def mixup_data(x, y, alpha=0.4):
     """Mixup: blend pairs of training examples for better generalization on small datasets."""
@@ -49,13 +49,29 @@ class MovementTrainer:
         # Optimizer (will use default learning rate)
         self.optimizer = optim.AdamW(self.model.parameters(), lr=lr, weight_decay=weight_decay)
 
+        # Global normalization stats (filled in during train())
+        self.global_mean = None
+        self.global_std = None
+
     def train(self, train_files, patient_info_path, train_labels, epochs=60, batch_size=16):
         """
         Executes the training loop over the provided dataset.
         patient_info_path: Single string or list of strings (one per file).
         """
-        # Load Dataset
-        dataset = JUIMUDataset(train_files, patient_info_path, train_labels, training=True)
+        # Compute GLOBAL per-channel mean/std across the training set ONCE.
+        # This preserves cross-patient magnitude differences (key for stroke
+        # detection) instead of erasing them with per-sample Z-score.
+        print(f"[{self.movement_name}] Computing global per-channel normalization stats...")
+        self.global_mean, self.global_std = compute_global_stats(train_files, patient_info_path)
+        print(f"[{self.movement_name}]   mean[:6]={self.global_mean[:6].round(2)}, "
+              f"std[:6]={self.global_std[:6].round(2)}")
+
+        # Load Dataset (now uses global stats instead of per-sample Z-score)
+        dataset = JUIMUDataset(
+            train_files, patient_info_path, train_labels,
+            training=True,
+            global_mean=self.global_mean, global_std=self.global_std,
+        )
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
         
         # Compute class weights dynamically from actual training data distribution
@@ -129,11 +145,17 @@ class MovementTrainer:
             
         np_input_path = os.path.join(save_dir, "mobile", f"{self.movement_name}_input.npy")
         save_path = os.path.join(save_dir, f"{self.movement_name}_weights.pt")
+        stats_path = os.path.join(save_dir, f"{self.movement_name}_stats.npz")
         mobile_save_path = os.path.join(save_dir, "mobile", f"{self.movement_name}_weights.pt2")
         
         # --------------------------------------------------
         # SAVE WEIGHTS FOR INFERENCE
         torch.save(self.model.state_dict(), save_path)
+
+        # SAVE GLOBAL NORMALIZATION STATS so inference can apply identical preprocessing
+        if self.global_mean is not None and self.global_std is not None:
+            np.savez(stats_path, mean=self.global_mean, std=self.global_std)
+            print(f"[{self.movement_name}] Saved normalization stats to {stats_path}")
         
         # --------------------------------------------------
         # EXPORT FOR MOBILE
