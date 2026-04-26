@@ -67,13 +67,13 @@ void loop() {
         
         currentData.bicep_pitch = bicepIMU.getPitch();
         currentData.bicep_roll = bicepIMU.getRoll();
-        currentData.bicep_yaw = bicepIMU.getYaw(); // Grab Yaw
+        currentData.bicep_yaw = bicepIMU.getYaw();
         
         currentData.wrist_pitch = wristIMU.getPitch(); 
         currentData.wrist_roll = wristIMU.getRoll();
-        currentData.wrist_yaw = wristIMU.getYaw(); // Grab Yaw
+        currentData.wrist_yaw = wristIMU.getYaw(); 
 
-        // Update your print statement to look super pro
+        // UART
         Serial.printf("T:%lu | Bicep(P:%.1f, R:%.1f, Y:%.1f) | Wrist(P:%.1f, R:%.1f, Y:%.1f)\n", 
             currentData.timestamp_ms,
             currentData.bicep_pitch, currentData.bicep_roll, currentData.bicep_yaw,
