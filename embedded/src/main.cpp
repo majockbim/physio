@@ -45,13 +45,11 @@ void setup() {
     bicepIMU.begin(5, 6); 
     Serial.println("✓");
 
-    Serial.print("Initializing Wrist IMU (0x69)... ");
-    wristIMU.begin(5, 6); 
-    Serial.println("✓");
-
+    // Init Bluetooth
     Serial.println("Initializing BLE...");
-    init_BLE();
 
+    init_BLE();
+    
     Serial.println("\nStarting data stream...\n");
 }
 

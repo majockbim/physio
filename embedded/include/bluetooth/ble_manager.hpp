@@ -6,8 +6,6 @@ struct __attribute__((packed)) SensorPayload {
     
     float bicep_pitch;
     float bicep_roll;
-    float bicep_yaw;
-    
     float wrist_pitch;
     float wrist_roll;
     float wrist_yaw;
@@ -19,12 +17,20 @@ struct __attribute__((packed)) SensorPayload {
     float bicep_gyro_y;
     float bicep_gyro_z;
 
-    float wrist_accel_x;
-    float wrist_accel_y;
-    float wrist_accel_z;
-    float wrist_gyro_x;
-    float wrist_gyro_y;
-    float wrist_gyro_z;
+    float bicep_accel_x
+    float bicep_accel_y
+    float bicep_accel_z
+    float bicep_gyro_x
+    float bicep_gyro_y
+    float bicep_gyro_z
+
+    float wrist_accel_x
+    float wrist_accel_y
+    float wrist_accel_z
+    float wrist_gyro_x
+    float wrist_gyro_y
+    float wrist_gyro_z
+    */
 };
 
 // expose to main.cpp
