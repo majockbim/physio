@@ -6,8 +6,9 @@ This project is a complete hardware-to-software pipeline designed to track, anal
 
 ## 🏗 High-Level Architecture
 
-![High-Level Flowchart](./assets/architecture_flowchart.png)
-*(Note: Update the image path above to point to your flowchart PNG)*
+![High-Level Flowchart]
+
+
 
 The system is divided into three core pillars:
 1. **Embedded Hardware:** Captures raw 6-DOF human movement data at 80Hz.
