@@ -84,8 +84,7 @@ void loop() {
         currentData.bicep_gyro_x = b_gyro.x;
         currentData.bicep_gyro_y = b_gyro.y;
         currentData.bicep_gyro_z = b_gyro.z;
-
-        // --- NEW: Pack Wrist Accel & Gyro ---
+        
         AxisData w_accel = wristIMU.getAccel();
         currentData.wrist_accel_x = w_accel.x;
         currentData.wrist_accel_y = w_accel.y;
