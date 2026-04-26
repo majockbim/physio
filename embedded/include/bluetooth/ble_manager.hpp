@@ -3,12 +3,19 @@
 
 struct __attribute__((packed)) SensorPayload {
     uint32_t timestamp_ms;
+    
     float bicep_pitch;
     float bicep_roll;
     float wrist_pitch;
     float wrist_roll;
-    /* for new IMU (future)
-    uint32_t timestamp_ms; // tell swift when data was recorded (may need for 80Hz goal)
+    float wrist_yaw;
+    
+    float bicep_accel_x;
+    float bicep_accel_y;
+    float bicep_accel_z;
+    float bicep_gyro_x;
+    float bicep_gyro_y;
+    float bicep_gyro_z;
 
     float bicep_accel_x
     float bicep_accel_y
