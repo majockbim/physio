@@ -1,0 +1,570 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		DD000002DD000002DD000002 /* ZeticMLange.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = DD000001DD000001DD000001 /* ZeticMLange.xcframework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		3CEC0D902F9C667B0075CC0C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3CEC0D772F9C66790075CC0C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3CEC0D7E2F9C66790075CC0C;
+			remoteInfo = "Stroke Rehab";
+		};
+		3CEC0D9A2F9C667B0075CC0C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 3CEC0D772F9C66790075CC0C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 3CEC0D7E2F9C66790075CC0C;
+			remoteInfo = "Stroke Rehab";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		3CEC0D7F2F9C66790075CC0C /* Stroke Rehab.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Stroke Rehab.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3CEC0D8F2F9C667B0075CC0C /* Stroke RehabTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Stroke RehabTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		3CEC0D992F9C667B0075CC0C /* Stroke RehabUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Stroke RehabUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DD000001DD000001DD000001 /* ZeticMLange.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = ZeticMLange.xcframework; path = Frameworks/ZeticMLange.xcframework; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		3CEC0D812F9C66790075CC0C /* Stroke Rehab */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Stroke Rehab";
+			sourceTree = "<group>";
+		};
+		3CEC0D922F9C667B0075CC0C /* Stroke RehabTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Stroke RehabTests";
+			sourceTree = "<group>";
+		};
+		3CEC0D9C2F9C667B0075CC0C /* Stroke RehabUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Stroke RehabUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		3CEC0D7C2F9C66790075CC0C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DD000002DD000002DD000002 /* ZeticMLange.xcframework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3CEC0D8C2F9C667B0075CC0C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3CEC0D962F9C667B0075CC0C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		3CEC0D762F9C66790075CC0C = {
+			isa = PBXGroup;
+			children = (
+				3CEC0D812F9C66790075CC0C /* Stroke Rehab */,
+				3CEC0D922F9C667B0075CC0C /* Stroke RehabTests */,
+				3CEC0D9C2F9C667B0075CC0C /* Stroke RehabUITests */,
+				3CEC0D802F9C66790075CC0C /* Products */,
+				DD000001DD000001DD000001 /* ZeticMLange.xcframework */,
+			);
+			sourceTree = "<group>";
+		};
+		3CEC0D802F9C66790075CC0C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				3CEC0D7F2F9C66790075CC0C /* Stroke Rehab.app */,
+				3CEC0D8F2F9C667B0075CC0C /* Stroke RehabTests.xctest */,
+				3CEC0D992F9C667B0075CC0C /* Stroke RehabUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		3CEC0D7E2F9C66790075CC0C /* Stroke Rehab */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3CEC0DA32F9C667B0075CC0C /* Build configuration list for PBXNativeTarget "Stroke Rehab" */;
+			buildPhases = (
+				3CEC0D7B2F9C66790075CC0C /* Sources */,
+				3CEC0D7C2F9C66790075CC0C /* Frameworks */,
+				3CEC0D7D2F9C66790075CC0C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				3CEC0D812F9C66790075CC0C /* Stroke Rehab */,
+			);
+			name = "Stroke Rehab";
+			productName = "Stroke Rehab";
+			productReference = 3CEC0D7F2F9C66790075CC0C /* Stroke Rehab.app */;
+			productType = "com.apple.product-type.application";
+		};
+		3CEC0D8E2F9C667B0075CC0C /* Stroke RehabTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3CEC0DA62F9C667B0075CC0C /* Build configuration list for PBXNativeTarget "Stroke RehabTests" */;
+			buildPhases = (
+				3CEC0D8B2F9C667B0075CC0C /* Sources */,
+				3CEC0D8C2F9C667B0075CC0C /* Frameworks */,
+				3CEC0D8D2F9C667B0075CC0C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3CEC0D912F9C667B0075CC0C /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				3CEC0D922F9C667B0075CC0C /* Stroke RehabTests */,
+			);
+			name = "Stroke RehabTests";
+			packageProductDependencies = (
+			);
+			productName = "Stroke RehabTests";
+			productReference = 3CEC0D8F2F9C667B0075CC0C /* Stroke RehabTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		3CEC0D982F9C667B0075CC0C /* Stroke RehabUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3CEC0DA92F9C667B0075CC0C /* Build configuration list for PBXNativeTarget "Stroke RehabUITests" */;
+			buildPhases = (
+				3CEC0D952F9C667B0075CC0C /* Sources */,
+				3CEC0D962F9C667B0075CC0C /* Frameworks */,
+				3CEC0D972F9C667B0075CC0C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				3CEC0D9B2F9C667B0075CC0C /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				3CEC0D9C2F9C667B0075CC0C /* Stroke RehabUITests */,
+			);
+			name = "Stroke RehabUITests";
+			packageProductDependencies = (
+			);
+			productName = "Stroke RehabUITests";
+			productReference = 3CEC0D992F9C667B0075CC0C /* Stroke RehabUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		3CEC0D772F9C66790075CC0C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1610;
+				LastUpgradeCheck = 1610;
+				TargetAttributes = {
+					3CEC0D7E2F9C66790075CC0C = {
+						CreatedOnToolsVersion = 16.1;
+					};
+					3CEC0D8E2F9C667B0075CC0C = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = 3CEC0D7E2F9C66790075CC0C;
+					};
+					3CEC0D982F9C667B0075CC0C = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = 3CEC0D7E2F9C66790075CC0C;
+					};
+				};
+			};
+			buildConfigurationList = 3CEC0D7A2F9C66790075CC0C /* Build configuration list for PBXProject "Stroke Rehab" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 3CEC0D762F9C66790075CC0C;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 3CEC0D802F9C66790075CC0C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				3CEC0D7E2F9C66790075CC0C /* Stroke Rehab */,
+				3CEC0D8E2F9C667B0075CC0C /* Stroke RehabTests */,
+				3CEC0D982F9C667B0075CC0C /* Stroke RehabUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3CEC0D7D2F9C66790075CC0C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3CEC0D8D2F9C667B0075CC0C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3CEC0D972F9C667B0075CC0C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3CEC0D7B2F9C66790075CC0C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3CEC0D8B2F9C667B0075CC0C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		3CEC0D952F9C667B0075CC0C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		3CEC0D912F9C667B0075CC0C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3CEC0D7E2F9C66790075CC0C /* Stroke Rehab */;
+			targetProxy = 3CEC0D902F9C667B0075CC0C /* PBXContainerItemProxy */;
+		};
+		3CEC0D9B2F9C667B0075CC0C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 3CEC0D7E2F9C66790075CC0C /* Stroke Rehab */;
+			targetProxy = 3CEC0D9A2F9C667B0075CC0C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		3CEC0DA12F9C667B0075CC0C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		3CEC0DA22F9C667B0075CC0C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		3CEC0DA42F9C667B0075CC0C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Stroke Rehab/Preview Content\"";
+				DEVELOPMENT_TEAM = TQXX9FPT2N;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Stroke Rehab connects to IMU sensors over Bluetooth to measure your movement during exercises.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.hackclub.Stroke-Rehab";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		3CEC0DA52F9C667B0075CC0C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Stroke Rehab/Preview Content\"";
+				DEVELOPMENT_TEAM = P6PV2R9443;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription = "Stroke Rehab connects to IMU sensors over Bluetooth to measure your movement during exercises.";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.hackclub.Stroke-Rehab";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		3CEC0DA72F9C667B0075CC0C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = P6PV2R9443;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.hackclub.Stroke-RehabTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Stroke Rehab.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Stroke Rehab";
+			};
+			name = Debug;
+		};
+		3CEC0DA82F9C667B0075CC0C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = P6PV2R9443;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.hackclub.Stroke-RehabTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Stroke Rehab.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Stroke Rehab";
+			};
+			name = Release;
+		};
+		3CEC0DAA2F9C667B0075CC0C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = P6PV2R9443;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.hackclub.Stroke-RehabUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Stroke Rehab";
+			};
+			name = Debug;
+		};
+		3CEC0DAB2F9C667B0075CC0C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = P6PV2R9443;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.hackclub.Stroke-RehabUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Stroke Rehab";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3CEC0D7A2F9C66790075CC0C /* Build configuration list for PBXProject "Stroke Rehab" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3CEC0DA12F9C667B0075CC0C /* Debug */,
+				3CEC0DA22F9C667B0075CC0C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3CEC0DA32F9C667B0075CC0C /* Build configuration list for PBXNativeTarget "Stroke Rehab" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3CEC0DA42F9C667B0075CC0C /* Debug */,
+				3CEC0DA52F9C667B0075CC0C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3CEC0DA62F9C667B0075CC0C /* Build configuration list for PBXNativeTarget "Stroke RehabTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3CEC0DA72F9C667B0075CC0C /* Debug */,
+				3CEC0DA82F9C667B0075CC0C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3CEC0DA92F9C667B0075CC0C /* Build configuration list for PBXNativeTarget "Stroke RehabUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3CEC0DAA2F9C667B0075CC0C /* Debug */,
+				3CEC0DAB2F9C667B0075CC0C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 3CEC0D772F9C66790075CC0C /* Project object */;
+}
