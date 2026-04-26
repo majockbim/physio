@@ -6,9 +6,7 @@ This project is a complete hardware-to-software pipeline designed to track, anal
 
 ## 🏗 High-Level Architecture
 
-![High-Level Flowchart]
-
-
+<img width="2058" height="691" alt="high_level_flowcart" src="https://github.com/user-attachments/assets/42c14b18-123f-416b-906d-5fbbe0a4f691" />
 
 The system is divided into three core pillars:
 1. **Embedded Hardware:** Captures raw 6-DOF human movement data at 80Hz.
@@ -56,5 +54,7 @@ The iOS application serves as the command center for the patient, processing the
 * **Local Inference via Zetic:** The Swift app holds the trained `.pt2` AI model. It passes the cached data window into the Zetic runtime, executing the CNN entirely on-device (no cloud computing delay).
 * **Exercise Guide & Gamification:** Translates the AI's 0–100 movement quality score into a visual performance dashboard.
 * **Audio Feedback:** Integrates **ElevenLabs TTS** to provide encouraging, real-time voice guidance to the patient based on their workout selection and current performance score.
+
+<br>
 
 Made with ❤️ for LA Hacks 2026 by [Mj](https://github.com/majockbim), [Ethan](https://github.com/ethan-pham25), [Scott](https://github.com/Scott170c), [Ian](https://github.com/YodaLightsabr)
