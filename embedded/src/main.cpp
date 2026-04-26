@@ -1,5 +1,6 @@
 #include <Arduino.h>
-#include "../include/imu_filter.hpp"
+#include "../include/imu/imu_filter.hpp"
+#include "../include/bluetooth/ble_manager.hpp"
 
 // bicep uses hardware I2C
 MMA7660Filter bicepIMU(&Wire, 0.10);
@@ -137,7 +138,7 @@ void init_wrist() {
 }
 
 unsigned long lastUpdate = 0;
-const int UPDATE_INTERVAL_MS = 50;
+const int UPDATE_INTERVAL_MS = 12; // tested with =50 (20Hz), 12 gives us 80Hz
 
 void setup() {
     Serial.begin(115200);
@@ -154,6 +155,11 @@ void setup() {
     Serial.print("Wrist IMU (Bit-Bang I2C): ");
     init_wrist();
     Serial.println("✓");
+
+    // Init Bluetooth
+    Serial.println("Initializing BLE...");
+
+    init_BLE();
     
     Serial.println("\nStarting data stream...\n");
 }
@@ -162,14 +168,25 @@ void loop() {
     if (millis() - lastUpdate >= UPDATE_INTERVAL_MS) {
         lastUpdate = millis();
         
+        // read sensors
         bicepIMU.update();
         update_wrist();
+
+        // pack imu data into ble struct
+        currentData.timestamp_ms = millis();
+        currentData.bicep_pitch = bicepIMU.getPitch();
+        currentData.bicep_roll = bicepIMU.getRoll();
+        currentData.wrist_pitch = wrist_pitch;
+        currentData.wrist_roll = wrist_roll;
+
+        // print to UART (serial monitor)
+        Serial.printf("T:%lu | Bicep(P:%.1f, R:%.1f) | Wrist(P:%.1f, R:%.1f)\n", 
+            currentData.timestamp_ms,
+            currentData.bicep_pitch, currentData.bicep_roll,
+            currentData.wrist_pitch, currentData.wrist_roll
+        );
         
-        String payload = String(bicepIMU.getPitch(), 1) + "," + 
-                         String(bicepIMU.getRoll(), 1) + "," +
-                         String(wrist_pitch, 1) + "," + 
-                         String(wrist_roll, 1);
-        
-        Serial.println(payload);
+        // transmit over BLE (if Swift app is connected)
+        notify_BLE();
     }
 }
