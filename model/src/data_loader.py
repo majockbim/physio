@@ -4,15 +4,89 @@ from torch.utils.data import Dataset, DataLoader
 import pandas as pd
 import numpy as np
 
+from cnn import INTERPOLATION_SIZE
+
+def normalize_features(tensor_features):
+    """Apply per-sample Z-score normalization across the time dimension."""
+    mean = tensor_features.mean(dim=0, keepdim=True)
+    std = tensor_features.std(dim=0, keepdim=True) + 1e-7
+    return (tensor_features - mean) / std
+
+def interpolate_to_fixed_length(tensor_features, size=INTERPOLATION_SIZE):
+    """Interpolate (variable_length, 12) tensor to (size, 12)."""
+    # F.interpolate expects (batch, channels, length)
+    x = tensor_features.transpose(0, 1).unsqueeze(0)
+    x = F.interpolate(x, size=size, mode='linear', align_corners=False)
+    return x.squeeze(0).transpose(0, 1)
+
+def augment_axis_rotation(features):
+    """
+    Apply random 3D rotation to accelerometer and gyroscope vector groups.
+    Simulates natural variability in sensor orientation (per paper methodology).
+    Channels layout: [acc_x, acc_y, acc_z, gyro_x, gyro_y, gyro_z] x 2 sensors
+    """
+    # Random rotation angle in [-90°, +90°]
+    angle = (torch.rand(1) * np.pi) - (np.pi / 2)
+    # Random rotation axis (unit vector)
+    axis = torch.randn(3)
+    axis = axis / (axis.norm() + 1e-7)
+    
+    # Rodrigues' rotation formula: R = I + sin(a)*K + (1-cos(a))*K^2
+    K = torch.tensor([
+        [0, -axis[2], axis[1]],
+        [axis[2], 0, -axis[0]],
+        [-axis[1], axis[0], 0]
+    ])
+    R = torch.eye(3) + torch.sin(angle) * K + (1 - torch.cos(angle)) * (K @ K)
+    
+    # Apply rotation to each 3D vector group (4 groups: acc1, gyro1, acc2, gyro2)
+    features = features.clone()
+    for start_idx in [0, 3, 6, 9]:
+        vec = features[:, start_idx:start_idx + 3]  # (seq_len, 3)
+        features[:, start_idx:start_idx + 3] = vec @ R.T
+    return features
+
+def augment_magnitude_scaling(features, low=0.8, high=1.2):
+    """Scale all channels by a random factor — simulates sensor gain variability."""
+    scale = torch.empty(1).uniform_(low, high)
+    return features * scale
+
+def augment_time_warp(features, sigma=0.2):
+    """Slightly warp the time axis by interpolating through randomly displaced anchors."""
+    seq_len = features.shape[0]
+    if seq_len < 4:
+        return features
+    # Create random time warp by displacing a few anchor points
+    n_anchors = 4
+    orig = torch.linspace(0, 1, n_anchors)
+    warp = orig + torch.randn(n_anchors) * sigma / n_anchors
+    warp[0], warp[-1] = 0.0, 1.0  # keep endpoints fixed
+    warp, _ = warp.sort()
+    # Map original indices through warped anchors
+    orig_idx = torch.linspace(0, 1, seq_len)
+    warped_idx = torch.from_numpy(
+        np.interp(orig_idx.numpy(), warp.numpy(), orig.numpy())
+    ).float()
+    # Convert to sample indices and interpolate
+    sample_idx = warped_idx * (seq_len - 1)
+    idx_floor = sample_idx.long().clamp(0, seq_len - 2)
+    frac = (sample_idx - idx_floor.float()).unsqueeze(1)
+    return features[idx_floor] * (1 - frac) + features[idx_floor + 1] * frac
+
+
 class JUIMUDataset(Dataset):
     def __init__(self, file_paths, patient_info_path, labels, *, training=False, debug=False):
         """
         file_paths: List of string paths to the individual CSV files.
-        patient_info_path: String path to the patient info file, containing which side is affected by stroke.
+        patient_info_path: String path OR list of string paths (one per file) to the patient info file(s).
         labels: List of integers (1 for ND/Healthy, 0 for Stroke/Affected).
         """
         self.file_paths = file_paths
-        self.patient_info_path = patient_info_path
+        # Support both single path and per-file paths for unified training
+        if isinstance(patient_info_path, str):
+            self.patient_info_paths = [patient_info_path] * len(file_paths)
+        else:
+            self.patient_info_paths = patient_info_path
         self.labels = labels
         self.training = training
         self.debug = debug
@@ -20,12 +94,14 @@ class JUIMUDataset(Dataset):
     def __len__(self):
         return len(self.file_paths)
     
-    def get_patient_data(self, df, patient_file_path):
+    def get_patient_data(self, df, patient_file_path, patient_info_path=None):
         """
         Returns the sensor data corresponding to the given patient_file_path
         """
         
-        patient_info_df = pd.read_csv(self.patient_info_path)
+        if patient_info_path is None:
+            patient_info_path = self.patient_info_paths[0]
+        patient_info_df = pd.read_csv(patient_info_path)
         # Files have name format "[ROM/ADL]_[PATIENT_ID]_...", where PATIENT_ID is ND[#] or Stroke[#]
         patient_id = patient_file_path.split('_')[1]
         patient_info = patient_info_df.loc[(patient_info_df['id'] == patient_id).idxmax()]
@@ -69,9 +145,10 @@ class JUIMUDataset(Dataset):
     def __getitem__(self, idx):
         # 1. Load the raw variable-length CSV
         patient_file_path = self.file_paths[idx]
+        patient_info_path = self.patient_info_paths[idx]
         df = pd.read_csv(patient_file_path)
             
-        selected_cols = self.get_patient_data(df, patient_file_path)
+        selected_cols = self.get_patient_data(df, patient_file_path, patient_info_path)
         
         if self.debug:
             print(f'First data values are: {df[selected_cols].head()}')
@@ -84,35 +161,21 @@ class JUIMUDataset(Dataset):
         
         # 4. Apply Z-score normalization
         # This is because the scales of the accelerometers vs. gyroscopes are quite different
-        # mean = tensor_features.mean(dim=0, keepdim=True)
-        # std = tensor_features.std(dim=0, keepdim=True) + 1e-7 # add epsilon to prevent div by zero
-        # tensor_features = (tensor_features - mean) / std
+        tensor_features = normalize_features(tensor_features)
         
-        # 5. Apply Linear Interpolation
-        # PyTorch's F.interpolate expects 1D data to be shaped as: [batch_size, channels, sequence_length]
-        # We must transpose our (length, 12) tensor to (12, length) and add a dummy batch dimension.
-        tensor_features = tensor_features.transpose(0, 1).unsqueeze(0) # Shape: (1, 12, variable_length)
-        
-        # Interpolate down/up to exactly 20 windows
-        interpolated = F.interpolate(
-            tensor_features, 
-            size=20, 
-            mode='linear', 
-            align_corners=False
-        )
-        
-        # Reshape back to the plan's required output: (20, 12)
-        final_features = interpolated.squeeze(0).transpose(0, 1)
-        
-        # 6. Format Label
-        label = torch.tensor(self.labels[idx], dtype=torch.long)
-        
+        # 5. Apply Data Augmentation (training only, before interpolation for max diversity)
         if self.training:
-            noise_factor = 0.01
-            # noise_factor = 0.0
-            noise = torch.randn_like(final_features) * noise_factor
-            final_features = final_features + noise
+            tensor_features = augment_axis_rotation(tensor_features)
+            tensor_features = augment_magnitude_scaling(tensor_features)
+            # Gaussian jitter
+            tensor_features = tensor_features + torch.randn_like(tensor_features) * 0.03
+        
+        # 6. Apply Linear Interpolation to fixed temporal resolution
+        final_features = interpolate_to_fixed_length(tensor_features, size=INTERPOLATION_SIZE)
+        
+        # 7. Format Label
+        label = torch.tensor(self.labels[idx], dtype=torch.long)
         
         return final_features, label
       
-__all__ = ["JUIMUDataset", ]
+__all__ = ["JUIMUDataset", "normalize_features", "interpolate_to_fixed_length"]

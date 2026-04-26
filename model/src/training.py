@@ -1,3 +1,6 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = ""  # Must be set before importing torch
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -5,14 +8,28 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import pandas as pd
 import numpy as np
-import os
 
-from adl_model import ADL_CNN
+from cnn import CNN, INTERPOLATION_SIZE
 from data_loader import JUIMUDataset
-from rom_model import ROM_CNN
+
+def mixup_data(x, y, alpha=0.4):
+    """Mixup: blend pairs of training examples for better generalization on small datasets."""
+    if alpha > 0:
+        lam = np.random.beta(alpha, alpha)
+    else:
+        lam = 1.0
+    batch_size = x.size(0)
+    index = torch.randperm(batch_size, device=x.device)
+    mixed_x = lam * x + (1 - lam) * x[index]
+    y_a, y_b = y, y[index]
+    return mixed_x, y_a, y_b, lam
+
+def mixup_criterion(criterion, pred, y_a, y_b, lam):
+    """Compute loss for mixup-blended targets."""
+    return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 
 class MovementTrainer:
-    def __init__(self, movement_name, model_type="ROM", lr=0.001, weight_decay=0.01, *, debug=False):
+    def __init__(self, movement_name, model_type="ROM", lr=0.001, weight_decay=0.05, *, debug=False):
         """
         Initializes the trainer for a specific movement.
         model_type: "ROM" or "ADL"
@@ -20,25 +37,40 @@ class MovementTrainer:
         self.movement_name = movement_name
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.debug = debug
+        self.criterion = None  # Will be initialized in train() with actual class weights
         print(f"[{self.movement_name}] Training on device: {self.device}")
         
         # Select Architecture
         if model_type == "ROM":
-            self.model = ROM_CNN(debug=self.debug).to(self.device)
+            self.model = CNN(debug=self.debug).to(self.device)
         else:
-            self.model = ADL_CNN(debug=self.debug).to(self.device)
-            
-        # Optimizer & Loss (AdamW as specified in your plan)
+            self.model = CNN(debug=self.debug).to(self.device)
+        
+        # Optimizer (will use default learning rate)
         self.optimizer = optim.AdamW(self.model.parameters(), lr=lr, weight_decay=weight_decay)
-        self.criterion = nn.CrossEntropyLoss()
 
-    def train(self, train_files, patient_info_path, train_labels, epochs=40, batch_size=256):
+    def train(self, train_files, patient_info_path, train_labels, epochs=60, batch_size=16):
         """
         Executes the training loop over the provided dataset.
+        patient_info_path: Single string or list of strings (one per file).
         """
         # Load Dataset
-        dataset = JUIMUDataset(train_files, patient_info_path, train_labels)
+        dataset = JUIMUDataset(train_files, patient_info_path, train_labels, training=True)
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+        
+        # Compute class weights dynamically from actual training data distribution
+        label_counts = np.bincount(train_labels)
+        class_weights = 1.0 / (label_counts / label_counts.sum())
+        class_weights = class_weights / class_weights.sum() * 2  # Normalize so average is ~1
+        class_weights = torch.tensor(class_weights, dtype=torch.float32).to(self.device)
+        self.criterion = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=0.1)
+        
+        # Learning rate scheduler: cosine annealing for smooth convergence
+        scheduler = optim.lr_scheduler.CosineAnnealingLR(self.optimizer, T_max=epochs, eta_min=1e-5)
+        
+        if self.debug:
+            print(f"Class distribution: {label_counts}")
+            print(f"Class weights: {class_weights}")
         
         self.model.train() # Turn ON Dropout and gradients
         
@@ -52,30 +84,35 @@ class MovementTrainer:
                 # Move data to GPU if available
                 features, labels = features.to(self.device), labels.to(self.device)
                 
+                # Apply mixup augmentation (blends pairs of samples for better generalization)
+                mixed_features, labels_a, labels_b, lam = mixup_data(features, labels, alpha=0.4)
+                
                 # Zero gradients
                 self.optimizer.zero_grad()
                 
                 # Forward pass
-                outputs = self.model(features)
-                # if self.debug:
-                #     print(f"DEBUG: Label shape for training: {labels.shape}")
-                loss = self.criterion(outputs, labels)
+                outputs = self.model(mixed_features)
+                loss = mixup_criterion(self.criterion, outputs, labels_a, labels_b, lam)
                 
                 # Backward pass & optimize
                 loss.backward()
                 self.optimizer.step()
                 
-                # Track metrics
+                # Track metrics (use original labels for accuracy tracking)
                 running_loss += loss.item()
                 _, predicted = torch.max(outputs.data, 1) # Get the index of the highest logit
                 total_samples += labels.size(0)
-                correct_predictions += (predicted == labels).sum().item()
-                
+                correct_predictions += (lam * (predicted == labels_a).sum().float() + 
+                                       (1 - lam) * (predicted == labels_b).sum().float()).item()
+            
+            scheduler.step()
+            
             # Print epoch summary
             epoch_loss = running_loss / len(dataloader)
             epoch_acc = (correct_predictions / total_samples) * 100
-            if (epoch + 1) % 5 == 0 or epoch == 0:
-                print(f"Epoch [{epoch+1}/{epochs}] - Loss: {epoch_loss:.4f} - Accuracy: {epoch_acc:.2f}%")
+            if (epoch + 1) % 10 == 0 or epoch == 0:
+                lr = scheduler.get_last_lr()[0]
+                print(f"Epoch [{epoch+1}/{epochs}] - Loss: {epoch_loss:.4f} - Accuracy: {epoch_acc:.2f}% - LR: {lr:.6f}")
                 
         print(f"[{self.movement_name}] Training complete!")
 
@@ -101,15 +138,16 @@ class MovementTrainer:
         # --------------------------------------------------
         # EXPORT FOR MOBILE
         # Set model to eval mode for export
-        self.model.eval()
+        model = self.model.cpu()
+        model.eval()
         
-        # Create example input with batch size 1: (batch, 20 windows, 12 channels)
-        input_data = np.random.randn(1, 20, 12).astype(np.float32)
+        # Create example input with batch size 1: (batch, INTERPOLATION_SIZE, 12 channels)
+        input_data = np.random.randn(1, INTERPOLATION_SIZE, 12).astype(np.float32)
         np.save(np_input_path, input_data)
-        example_input = (torch.randn(1, 20, 12).to(device),)
+        example_input = (torch.randn(1, INTERPOLATION_SIZE, 12).to(device),)
     
         ep = torch.export.export(
-            self.model,
+            model,
             args=example_input,
         )
         

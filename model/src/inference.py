@@ -3,8 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
-from rom_model import ROM_CNN
-from adl_model import ADL_CNN
+from cnn import CNN
+from data_loader import normalize_features, interpolate_to_fixed_length
 
 class MovementQualityInference:
     def __init__(self, movement_name, model_weights_path):
@@ -19,18 +19,16 @@ class MovementQualityInference:
         ROM_MOVEMENTS = ["ElbFlex", "ShFlex90", "ShHorAdd", "FrontSupPro"]
         ADL_MOVEMENTS = ["TakePill", "PourWater", "BrushTeeth"]
         
-        if self.movement_name in ROM_MOVEMENTS:
-            self.model = ROM_CNN()
-            print(f"[{movement_name}] Loaded ROM_CNN Architecture.")
-        elif self.movement_name in ADL_MOVEMENTS:
-            self.model = ADL_CNN()
-            print(f"[{movement_name}] Loaded ADL_CNN Architecture.")
+        ALL_VALID = ROM_MOVEMENTS + ADL_MOVEMENTS + ["Unified"]
+        if self.movement_name in ALL_VALID:
+            self.model = CNN()
+            print(f"[{movement_name}] Loaded CNN Architecture.")
         else:
             print(f"ERROR, MOVEMENT NAME NOT IN MOVEMENTS, WAS: {self.movement_name}")
             
         # Load weights and set to EVALUATION mode
         try:
-            self.model.load_state_dict(torch.load(model_weights_path, map_location=self.device))
+            self.model.load_state_dict(torch.load(model_weights_path, map_location=self.device, weights_only=True))
             print(f"Successfully loaded weights from: {model_weights_path}")
         except FileNotFoundError:
             print(f"Warning: No weights found at {model_weights_path}. Exiting.")
@@ -42,37 +40,27 @@ class MovementQualityInference:
     def preprocess_live_buffer(self, raw_sensor_data):
         """
         Takes a raw 2D numpy array of incoming live sensor data (variable length, 12 channels)
-        and interpolates it down to the exact (1, 20, 12) tensor required by the model.
+        and applies the SAME preprocessing as training: Z-score normalization + interpolation.
+        Returns tensor of shape (1, INTERPOLATION_SIZE, 12).
         """
-        
-        print(raw_sensor_data)
         # Convert raw numpy array to PyTorch tensor
         # Expected input shape: (variable_length, 12)
         tensor_features = torch.tensor(raw_sensor_data, dtype=torch.float32)
         
-        # Transpose and add dummy batch dimension for interpolation
-        # Shape becomes: (1, 12, variable_length)
-        tensor_features = tensor_features.transpose(0, 1).unsqueeze(0) 
+        # CRITICAL: Apply the same Z-score normalization used during training
+        tensor_features = normalize_features(tensor_features)
         
-        # Apply Linear Interpolation down to 20 windows
-        interpolated = F.interpolate(
-            tensor_features, 
-            size=20, 
-            mode='linear', 
-            align_corners=False
-        )
+        # Interpolate to fixed temporal resolution (matches training)
+        tensor_features = interpolate_to_fixed_length(tensor_features)
         
-        # Reshape to (Batch=1, Windows=20, Channels=12)
-        final_features = interpolated.squeeze(0).transpose(0, 1).unsqueeze(0)
-        return final_features
+        # Add batch dimension: (INTERPOLATION_SIZE, 12) -> (1, INTERPOLATION_SIZE, 12)
+        return tensor_features.unsqueeze(0)
 
     def get_live_score(self, raw_sensor_data):
         """
         Executes the full pipeline: preprocesses live data, runs inference without gradients,
         and returns the gamified 0-100 score.
         """
-        
-        # print(f"Raw sensor data shape: {raw_sensor_data.shape}")
         
         # 1. Format the data
         model_input = self.preprocess_live_buffer(raw_sensor_data)

@@ -63,16 +63,22 @@ def full_training_evaluation(movement_name, *, debug=False):
     # ==========================================
     # 2. Train / Test Split (Holdout Validation)
     # ==========================================
-    # We will hold out the last 2 ND files and the last 2 Stroke files for testing.
+    # We will hold out test_count ND files and test_count Stroke files for testing.
     # The model will NEVER see these during training.
+    # Shuffle to avoid filesystem-order bias.
+    test_count = 3
     nd_files = [f for f, l in zip(all_files, all_labels) if l == 1]
     stroke_files = [f for f, l in zip(all_files, all_labels) if l == 0]
     
-    train_files = nd_files[:-2] + stroke_files[:-2]
-    train_labels = [1] * len(nd_files[:-2]) + [0] * len(stroke_files[:-2])
+    np.random.seed(42)  # Reproducible split
+    np.random.shuffle(nd_files)
+    np.random.shuffle(stroke_files)
     
-    test_files = nd_files[-2:] + stroke_files[-2:]
-    test_labels = [1, 1, 0, 0] # 2 ND, 2 Stroke
+    train_files = nd_files[:-test_count] + stroke_files[:-test_count]
+    train_labels = [1] * len(nd_files[:-test_count]) + [0] * len(stroke_files[:-test_count])
+    
+    test_files = nd_files[-test_count:] + stroke_files[-test_count:]
+    test_labels = [1] * test_count + [0] * test_count
     
     if debug:
       print(f'Test files: {test_files}')
@@ -85,8 +91,7 @@ def full_training_evaluation(movement_name, *, debug=False):
     # ==========================================
     trainer = MovementTrainer(movement_name=movement_name, model_type=MODEL_TYPE)
     
-    # Train for 40 epochs as per your architecture plan
-    trainer.train(train_files, PATIENT_INFO_PATH, train_labels, epochs=40, batch_size=32)
+    trainer.train(train_files, PATIENT_INFO_PATH, train_labels, epochs=60, batch_size=16)
     trainer.save_model(save_dir=MODEL_PATH)
     
     # ==========================================
@@ -102,9 +107,12 @@ def full_training_evaluation(movement_name, *, debug=False):
     
     test_dataset = JUIMUDataset(test_files, PATIENT_INFO_PATH, test_labels)
     # Keep track of how well the model did
-    correct_cases = 0
+    correct_binary = 0    # Standard: healthy > 50, stroke <= 50
+    correct_strict = 0    # Strict: healthy > 70, stroke < 50
     false_positives = 0
     false_negatives = 0
+    nd_scores = []
+    stroke_scores = []
     for test_file, actual_label in zip(test_files, test_labels):
         # 1. Load the raw CSV exactly as the ESP32 will send it (Variable Length, 12 Channels)
         df = pd.read_csv(test_file)
@@ -118,17 +126,28 @@ def full_training_evaluation(movement_name, *, debug=False):
         patient_type = "HEALTHY (ND)" if actual_label == 1 else "IMPAIRED (Stroke)"
         filename = os.path.basename(test_file)
         
+        if actual_label == 1:
+            nd_scores.append(score)
+        else:
+            stroke_scores.append(score)
+        
+        # Binary accuracy (>50 threshold)
+        predicted_healthy = score > 50
+        actually_healthy = actual_label == 1
+        if predicted_healthy == actually_healthy:
+            correct_binary += 1
+        
         print(f"File: {filename}")
         print(f"  -> Actual Patient: {patient_type}")
         print(f"  -> Model Score:    {score}/100")
         
-        # A quick visual sanity check
+        # Strict quality thresholds
         if actual_label == 1 and score > 70:
             print("  -> Result: PASS (Healthy score is appropriately high)")
-            correct_cases += 1
+            correct_strict += 1
         elif actual_label == 0 and score < 50:
             print("  -> Result: PASS (Impaired score is appropriately low)")
-            correct_cases += 1
+            correct_strict += 1
         elif actual_label == 1 and score <= 70:
             print("  -> Result: FAIL / INCONCLUSIVE (Score does not match expectations)")
             false_positives += 1
@@ -139,25 +158,159 @@ def full_training_evaluation(movement_name, *, debug=False):
         print("-" * 40)
         
     total_test_cases = len(test_files)
-    print(f"Overall accuracy for {total_test_cases} test cases: {correct_cases}/{total_test_cases}); " +
-          f"{100 * (correct_cases/total_test_cases)}% accuracy")
+    binary_acc = 100 * correct_binary / total_test_cases
+    strict_acc = 100 * correct_strict / total_test_cases
+    nd_avg = np.mean(nd_scores) if nd_scores else 0
+    stroke_avg = np.mean(stroke_scores) if stroke_scores else 0
+    
+    print(f"Binary accuracy (>50 threshold): {correct_binary}/{total_test_cases} = {binary_acc:.1f}%")
+    print(f"Strict accuracy (>70/ND, <50/Stroke): {correct_strict}/{total_test_cases} = {strict_acc:.1f}%")
+    print(f"Avg ND score: {nd_avg:.1f}, Avg Stroke score: {stroke_avg:.1f}, Gap: {nd_avg - stroke_avg:.1f}")
     
     # False positive is model inferring stroke when it was healthy, false negative is opposite
-    return correct_cases, false_positives, false_negatives, total_test_cases
+    return correct_binary, false_positives, false_negatives, total_test_cases
 
-if __name__ == "__main__":
-    total_correct = 0
-    total_false_pos = 0
-    total_false_neg = 0
-    total_test_cases = 0
+def unified_training_evaluation(*, debug=False):
+    """
+    Train a SINGLE model on ALL movements (~245 samples) instead of per-movement models (~35 each).
+    Uses patient-level split: all movements for a held-out patient go to test.
+    """
+    MODEL_PATH = "/home/ethan/projects/LAHacks2026/model/models/"
+    DATA_BASE = "/home/ethan/projects/LAHacks2026/data/"
+    
+    # ==========================================
+    # 1. Gather ALL data across all movements
+    # ==========================================
+    all_files = []
+    all_labels = []
+    all_patient_info_paths = []  # Per-file patient info path
     
     for movement_name in ALL_MOVEMENTS:
-        correct, false_pos, false_neg, tests = full_training_evaluation(movement_name)
-        total_correct += correct
-        total_false_pos += false_pos
-        total_false_neg += false_neg
-        total_test_cases += tests
+        if movement_name in ROM_MOVEMENTS:
+            data_dir = DATA_BASE + "ROM/"
+            info_path = DATA_BASE + "ROM_participants.csv"
+        else:
+            data_dir = DATA_BASE + "ADL/"
+            info_path = DATA_BASE + "ADL_participants.csv"
         
-    print(f"Overall overall accuracy for {total_test_cases} test cases: {total_correct}/{total_test_cases}); " +
-          f"{100 * (total_correct/total_test_cases)}% accuracy")
-    print(f"False positives: {total_false_pos}, false negatives: {total_false_neg}")
+        files, labels = gather_dataset(data_dir, movement_name)
+        all_files.extend(files)
+        all_labels.extend(labels)
+        all_patient_info_paths.extend([info_path] * len(files))
+    
+    print(f"\nTotal: {len(all_files)} files ({all_labels.count(1)} ND, {all_labels.count(0)} Stroke)")
+    
+    # ==========================================
+    # 2. Patient-level split (no leakage)
+    # ==========================================
+    # Extract patient IDs and group by patient
+    def get_patient_id(filepath):
+        return os.path.basename(filepath).split('_')[1]
+    
+    # Get unique patient IDs per class
+    nd_patients = sorted(set(get_patient_id(f) for f, l in zip(all_files, all_labels) if l == 1))
+    stroke_patients = sorted(set(get_patient_id(f) for f, l in zip(all_files, all_labels) if l == 0))
+    
+    np.random.seed(42)
+    np.random.shuffle(nd_patients)
+    np.random.shuffle(stroke_patients)
+    
+    # Hold out 3 ND + 3 Stroke patients (all their movements go to test)
+    test_patient_count = 3
+    test_patients = set(nd_patients[-test_patient_count:] + stroke_patients[-test_patient_count:])
+    
+    train_files, train_labels, train_info_paths = [], [], []
+    test_files, test_labels, test_info_paths = [], [], []
+    
+    for f, l, info in zip(all_files, all_labels, all_patient_info_paths):
+        pid = get_patient_id(f)
+        if pid in test_patients:
+            test_files.append(f)
+            test_labels.append(l)
+            test_info_paths.append(info)
+        else:
+            train_files.append(f)
+            train_labels.append(l)
+            train_info_paths.append(info)
+    
+    print(f"Train: {len(train_files)} files | Test: {len(test_files)} files")
+    print(f"Test patients: {test_patients}")
+    
+    # ==========================================
+    # 3. Train unified model
+    # ==========================================
+    trainer = MovementTrainer(movement_name="Unified", model_type="ROM")
+    trainer.train(train_files, train_info_paths, train_labels, epochs=60, batch_size=32)
+    trainer.save_model(save_dir=MODEL_PATH)
+    
+    # ==========================================
+    # 4. Evaluate on held-out patients
+    # ==========================================
+    print("\n" + "="*50)
+    print("UNIFIED MODEL — UNSEEN PATIENT EVALUATION")
+    print("="*50)
+    
+    weights_path = MODEL_PATH + "Unified_weights.pt"
+    # Use a valid movement name for loading (architecture is the same)
+    inference_engine = MovementQualityInference(movement_name="ElbFlex", model_weights_path=weights_path)
+    
+    test_dataset = JUIMUDataset(test_files, test_info_paths, test_labels)
+    
+    correct_binary = 0
+    nd_scores = []
+    stroke_scores = []
+    # Track per-movement results
+    movement_results = {}
+    
+    for i, (test_file, actual_label) in enumerate(zip(test_files, test_labels)):
+        df = pd.read_csv(test_file)
+        data_columns = test_dataset.get_patient_data(df, test_file, test_info_paths[i])
+        raw_sensor_data = df[data_columns].values
+        
+        score = inference_engine.get_live_score(raw_sensor_data)
+        
+        filename = os.path.basename(test_file)
+        patient_type = "ND" if actual_label == 1 else "Stroke"
+        # Extract movement name from filename
+        movement = filename.rsplit('_', 1)[1].replace('.csv', '')
+        
+        if actual_label == 1:
+            nd_scores.append(score)
+        else:
+            stroke_scores.append(score)
+        
+        predicted_healthy = score > 50
+        actually_healthy = actual_label == 1
+        correct = predicted_healthy == actually_healthy
+        if correct:
+            correct_binary += 1
+        
+        # Track per-movement
+        if movement not in movement_results:
+            movement_results[movement] = {'correct': 0, 'total': 0}
+        movement_results[movement]['total'] += 1
+        if correct:
+            movement_results[movement]['correct'] += 1
+        
+        result = "✓" if correct else "✗"
+        print(f"  {result} {filename:40s} | {patient_type:6s} | Score: {score:3d}/100")
+    
+    total = len(test_files)
+    binary_acc = 100 * correct_binary / total
+    nd_avg = np.mean(nd_scores) if nd_scores else 0
+    stroke_avg = np.mean(stroke_scores) if stroke_scores else 0
+    
+    print(f"\n{'='*50}")
+    print(f"OVERALL: {correct_binary}/{total} = {binary_acc:.1f}% binary accuracy")
+    print(f"Avg ND score: {nd_avg:.1f} | Avg Stroke score: {stroke_avg:.1f} | Gap: {nd_avg - stroke_avg:.1f}")
+    print(f"\nPer-movement breakdown:")
+    for mov, res in sorted(movement_results.items()):
+        acc = 100 * res['correct'] / res['total'] if res['total'] > 0 else 0
+        print(f"  {mov:15s}: {res['correct']}/{res['total']} = {acc:.0f}%")
+    
+    return correct_binary, total
+
+
+if __name__ == "__main__":
+    # Run unified model by default
+    unified_training_evaluation()
