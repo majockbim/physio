@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "LAHacks2026"
+version = "0.1.0"
+
+[tool.setuptools]
+# This tells Python to treat the current directory as a source for packages
+packages = ["src"]
