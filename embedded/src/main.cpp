@@ -10,9 +10,9 @@
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
-// Both sensors now use Hardware I2C! Just pass their specific addresses.
+// both sensors use hardware i2c
 MPU6050Filter bicepIMU(&Wire, 0x68, 0.10); // AD0 tied to GND
-MPU6050Filter wristIMU(&Wire, 0x69, 0.10); // AD0 tied to 3.3V
+MPU6050Filter wristIMU(&Wire, 0x69, 0.10);
 
 unsigned long lastUpdate = 0;
 const int UPDATE_INTERVAL_MS = 12; // 80Hz
@@ -23,10 +23,10 @@ void setup() {
     
     Serial.println("\n=== Dual IMU (Shared Hardware I2C Bus) ===");
     
-    // Start the I2C bus ONCE on pins 5 and 6
+    // start the I2C bus ocnce  on pins 5 and 6
     Wire.begin(5, 6);
     
-    // Initialize Screen (Address 0x3C)
+    // initialize screen
     Serial.print("Initializing OLED Screen: ");
     if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
         Serial.println("FAILED");
@@ -36,7 +36,7 @@ void setup() {
         display.setTextSize(2); 
         display.setTextColor(SSD1306_WHITE);
         display.setCursor(10, 20); 
-        display.println("strokr");
+        display.println("^_^");
         display.display();
     }
     
@@ -59,15 +59,14 @@ void loop() {
     if (millis() - lastUpdate >= UPDATE_INTERVAL_MS) {
         lastUpdate = millis();
         
-        // Read both hardware sensors
         bicepIMU.update();
         wristIMU.update();
 
-        // Pack data
+        // pack data
         currentData.timestamp_ms = millis();
         currentData.bicep_pitch = bicepIMU.getPitch();
         currentData.bicep_roll = bicepIMU.getRoll();
-        currentData.wrist_pitch = wristIMU.getPitch(); // Much cleaner!
+        currentData.wrist_pitch = wristIMU.getPitch();
         currentData.wrist_roll = wristIMU.getRoll();
 
         Serial.printf("T:%lu | Bicep(P:%.1f, R:%.1f) | Wrist(P:%.1f, R:%.1f)\n", 
