@@ -1,6 +1,7 @@
 # 🦾 Stroke Rehab System
-
 **An end-to-end wearable IoT and Edge-AI platform for real-time stroke rehabilitation scoring.**
+
+<img width="1854" height="577" alt="Untitled" src="https://github.com/user-attachments/assets/b87d5fa7-3b36-4895-8938-4bb4baf8d006" />
 
 This project is a complete hardware-to-software pipeline designed to track, analyze, and gamify physical therapy for stroke patients. By combining custom dual-IMU wearables with a mobile-optimized 1D Convolutional Neural Network (CNN) running locally on iOS via **Zetic**, the system provides zero-latency movement quality scores and voice feedback.
 
