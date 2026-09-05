@@ -61,7 +61,7 @@ final class RepScorer: ObservableObject {
                 do {
                     let mdl = try ZeticMLangeModel(
                         personalKey: "dev_98e6fcc313ed4ffea8198bc9982f4779",
-                        name: "Popcorn101/Strokr",
+                        name: "Popcorn101/Physio",
                         version: 3,
                         modelMode: .RUN_AUTO
                     ) { [weak self] progress in
