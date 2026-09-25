@@ -16,6 +16,8 @@ The breadboard sits on the bicep and takes up a lot of space. After the hackatho
 
 **Current status:** the original prototype is demonstrated above. PCBWay has sent factory photos of the custom boards; they have not arrived yet, so I have not tested the PCB assembly. Physio is a development prototype, and its score has not been validated as a clinical measure.
 
+[PCB and sponsorship](#from-breadboard-to-pcb) · [How it works](#how-it-works) · [Getting started](#getting-started) · [People](#people)
+
 ## From breadboard to PCB
 
 The first version was quick to wire up, but the breadboard was bulky on the arm. I wanted to keep the same basic sensor setup while replacing some of the jumper wiring with PCB traces and giving the modules a smaller base to sit on.
@@ -89,6 +91,19 @@ The model is a PyTorch 1D CNN trained using the [JU-IMU dataset](https://github.
 For each recording, the app takes 12 accelerometer/gyroscope channels, applies the saved per-channel training mean and standard deviation, and interpolates to 128 timesteps. Three convolution blocks feed a two-class output. Training uses side-aware sensor selection to choose the affected limb; live inference expects wrist channels followed by bicep channels.
 
 The main implementation details are in [the CNN](model/src/cnn.py), [training data preparation](model/src/data_loader.py), and [the Swift inference pipeline](app/Stroke%20Rehab/MovementQualityInference.swift).
+
+## Getting started
+
+| Directory | What's there |
+| --- | --- |
+| [embedded/](embedded/) | ESP32-C3 firmware and PlatformIO configuration |
+| [app/](app/) | Swift iOS app and Xcode project |
+| [model/](model/) | PyTorch model, preprocessing, and training scripts |
+| [hardware/](hardware/) | Carrier PCB notes, Altium sources, and manufacturing exports |
+
+Start with the [setup notes](docs/getting-started.md) for firmware commands, iOS requirements, and model configuration. The repository still contains hackathon setup assumptions, including local dataset paths and credentials you need to supply for the external services.
+
+The [v0.1.0 release](https://github.com/majockbim/physio/releases/tag/v0.1.0) preserves the original hackathon snapshot and hardware demo.
 
 ## References
 
