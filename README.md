@@ -1,9 +1,20 @@
-# 🦾 Stroke Rehab System
-**An end-to-end wearable IoT and Edge-AI platform for real-time stroke rehabilitation scoring.**
+# Physio
 
-<img width="1854" height="577" alt="Untitled" src="https://github.com/user-attachments/assets/b87d5fa7-3b36-4895-8938-4bb4baf8d006" />
+An arm-worn prototype for exploring stroke rehabilitation feedback, built with an ESP32-C3, two motion sensors, and an iOS app.
 
-This project is a complete hardware-to-software pipeline designed to track, analyze, and gamify physical therapy for stroke patients. By combining custom dual-IMU wearables with a mobile-optimized 1D Convolutional Neural Network (CNN) running locally on iOS via **Zetic**, the system provides zero-latency movement quality scores and voice feedback.
+We built the first version at LA Hacks 2026 in 36 hours. Sensors on the bicep and wrist send movement data to the phone over Bluetooth. The app lets you choose exercises, records movement, and runs a small neural network on the phone to produce a score.
+
+<p align="center">
+  <img src="assets/photos/sleeve-prototype.jpg" width="540" alt="The original Physio sleeve worn on an arm during elbow flexion" />
+</p>
+
+*The hackathon prototype, with sensors on the bicep and wrist.*
+
+**[Watch the hardware demo (Esp32.mp4)](https://github.com/majockbim/physio/releases/tag/v0.1.0#demo-spin)** · [Devpost build story](https://devpost.com/software/strokr-ai) · [Original hackathon release](https://github.com/majockbim/physio/releases/tag/v0.1.0)
+
+The breadboard sits on the bicep and takes up a lot of space. After the hackathon, I (Majock) designed a two-layer carrier PCB in Altium to reduce the jumper wiring and make the assembly more compact. PCBWay reached out after seeing the project and sponsored the next hardware iteration.
+
+**Current status:** the original prototype is demonstrated above. PCBWay has sent factory photos of the custom boards; they have not arrived yet, so I have not tested the PCB assembly. Physio is a development prototype, and its score has not been validated as a clinical measure.
 
 ## 🏗 High-Level Architecture
 
