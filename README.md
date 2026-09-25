@@ -2,13 +2,13 @@
 
 An arm-worn prototype for exploring stroke rehabilitation feedback, built with an ESP32-C3, two motion sensors, and an iOS app.
 
-We built the first version at LA Hacks 2026 in 36 hours. Sensors on the bicep and wrist send movement data to the phone over Bluetooth. The app lets you choose exercises, records movement, and runs a small neural network on the phone to produce a score.
-
 <p align="center">
-  <img src="assets/photos/sleeve-prototype.jpg" width="540" alt="The original Physio sleeve worn on an arm during elbow flexion" />
+  <img src="assets/photos/working-demo.gif" width="720" alt="Physio sleeve tracking elbow flexion while the iOS app displays a movement score" />
 </p>
 
-*The hackathon prototype, with sensors on the bicep and wrist.*
+*The hackathon prototype tracking elbow flexion. The bicep and wrist sensors stream to the iOS app beside it.*
+
+We built the first version at LA Hacks 2026 in 36 hours. Sensors on the bicep and wrist send movement data to the phone over Bluetooth. The app lets you choose exercises, records movement, and runs a small neural network on the phone to produce a score.
 
 **[Watch the hardware demo (Esp32.mp4)](https://github.com/majockbim/physio/releases/tag/v0.1.0#demo-spin)** · [Devpost build story](https://devpost.com/software/strokr-ai) · [Original hackathon release](https://github.com/majockbim/physio/releases/tag/v0.1.0)
 
@@ -71,6 +71,12 @@ Bicep + wrist IMUs → ESP32-C3 → Bluetooth LE → iOS app → on-device score
 The two MPU6050 modules share an I²C bus. They use different addresses (`0x68` and `0x69`) so the ESP32 can read both. An SSD1306 OLED gives us a simple way to check the hardware while debugging.
 
 The firmware packs a timestamp, accelerometer and gyroscope readings, and estimated pitch/roll/yaw for both sensors into a **76-byte BLE notification**. The prototype targets roughly **80 updates per second**; the current loop uses a 12 ms interval, so actual throughput depends on sensor reads, serial logging, and the BLE connection.
+
+<p align="center">
+  <img src="assets/photos/ble-telemetry.gif" width="300" alt="Live BLE telemetry from the two Physio sensors displayed in the iOS developer log" />
+</p>
+
+*The app's developer log receiving the custom BLE packets.*
 
 The [firmware](embedded/src/main.cpp) and [packet definition](embedded/include/bluetooth/ble_manager.hpp) are small enough to follow directly. The app decodes the same layout in [BLEManager.swift](app/Stroke%20Rehab/BLEManager.swift).
 
