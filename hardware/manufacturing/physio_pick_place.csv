@@ -1,0 +1,18 @@
+Altium Designer Pick and Place Locations
+C:\Users\Public\Documents\Altium\physio\Project Outputs for physio\Pick Place for physio.csv
+
+========================================================================================================================
+File Design Information:
+
+Date:       02-09-26
+Time:       18:53
+Revision:   905bd7e0b9315827aa11a2eca53362831aa496ab
+Variant:    No variations
+Units used: mil
+
+"Designator","Comment","Layer","Footprint","Center-X(mil)","Center-Y(mil)","Rotation","Description"
+"P4","Header 1x5","TopLayer","HDR1x5_2.54mm","3300.000","2400.000","180",""
+"P3","Header 1x8","TopLayer","HDR1x8_2.54mm","3900.000","2850.000","270",""
+"P1","Header 1x8","TopLayer","HDR1x8_2.54mm","2800.000","3050.000","90",""
+"P5","Header 1x2","TopLayer","HDR1x2_2.54MM","2600.000","3150.000","90",""
+"P2","Header 1x8","TopLayer","HDR1x8_2.54mm","3600.000","3050.000","90",""
