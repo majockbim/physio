@@ -16,66 +16,43 @@ The breadboard sits on the bicep and takes up a lot of space. After the hackatho
 
 **Current status:** the original prototype is demonstrated above. PCBWay has sent factory photos of the custom boards; they have not arrived yet, so I have not tested the PCB assembly. Physio is a development prototype, and its score has not been validated as a clinical measure.
 
-## 🏗 High-Level Architecture
+## How it works
 
-<img width="2058" height="691" alt="high_level_flowcart" src="https://github.com/user-attachments/assets/42c14b18-123f-416b-906d-5fbbe0a4f691" />
+```text
+Bicep + wrist IMUs → ESP32-C3 → Bluetooth LE → iOS app → on-device score
+```
 
-The system is divided into three core pillars:
-1. **Embedded Hardware:** Captures raw 6-DOF human movement data at 80Hz.
-2. **AI Scoring:** Processes the time-series data to evaluate movement quality.
-3. **Swift App:** Manages the BLE connection, runs the Edge AI, and guides the patient.
+### Sensing and Bluetooth
 
----
+The two MPU6050 modules share an I²C bus. They use different addresses (`0x68` and `0x69`) so the ESP32 can read both. An SSD1306 OLED gives us a simple way to check the hardware while debugging.
 
-## ⚙️ 1. Embedded Hardware (Data Generation)
-The wearable component is built from the ground up for low latency and high data throughput, acting as the foundation for the AI model.
+The firmware packs a timestamp, accelerometer and gyroscope readings, and estimated pitch/roll/yaw for both sensors into a **76-byte BLE notification**. The prototype targets roughly **80 updates per second**; the current loop uses a 12 ms interval, so actual throughput depends on sensor reads, serial logging, and the BLE connection.
 
-<img width="1211" height="846" alt="image" src="https://github.com/user-attachments/assets/80a8b9e7-c6af-4213-b7df-8fd3a52812f6" />
+The [firmware](embedded/src/main.cpp) and [packet definition](embedded/include/bluetooth/ble_manager.hpp) are small enough to follow directly. The app decodes the same layout in [BLEManager.swift](app/Stroke%20Rehab/BLEManager.swift).
 
-* **Microcontroller:** ESP32-C3 powered by a 4.8V LiPo battery.
-* **Dual Sensors:** 2x MPU6050 (Bicep and Wrist). Both sensors run on a shared hardware I2C bus utilizing custom addressing (`0x68` for Bicep, `0x69` via AD0 pin for Wrist) to prevent collisions.
-* **Diagnostics:** An integrated I2C OLED screen (`0x3C`) provides real-time device status and debugging.
-* **Custom BLE Pipeline:** * The ESP32 unpacks and filters accelerometer and gyroscope axes before transmission.
-  * An expanded MTU size blasts a tightly packed **76-byte payload** over Bluetooth Low Energy (BLE) at **80Hz**.
-  * Payload includes: `timestamp`, raw `accel`/`gyro`, and `bicep_PRY`, `wrist_PRY` channels for both sensors.
+### The app
 
----
+<p align="center">
+  <img src="assets/photos/ios-app.png" width="280" alt="Physio iOS home screen showing recent exercise sessions and scores" />
+</p>
 
-## 🧠 2. AI & Machine Learning (Zetic Edge Inference)
-The AI pipeline evaluates movement quality by comparing patient data against the **JU-IMU dataset** (Stroke vs. Healthy subjects). The model is specifically optimized for small-dataset generalization and on-device export.
+The Swift app connects through CoreBluetooth, shows live sensor data, lets you select exercises, and saves session results. Exercise recordings are passed to the model for scoring. There is also a developer view for inspecting the incoming data and running inference.
 
-### Preprocessing & Signal Alignment
-* **Side-Aware Selection:** Dynamically swaps sensor channels based on whether the patient has Left or Right hemiparesis, ensuring the affected limb always maps to the same input channels (resulting in a 12-channel input).
-* **Global Normalization:** Uses a global $(x - \mu) / \sigma$ over all training time-steps rather than per-sample Z-scores. This is crucial as it preserves the cross-patient magnitude differences that distinguish weak stroke movements from healthy ones.
-* **Interpolation:** Variable length movements are linearly interpolated to exactly **128 timesteps**.
+Inference runs on the phone through **Zetic MLange**. The app loads the configured model through the Zetic SDK, which can require a download. Optional spoken feedback uses **ElevenLabs over the network**, sending the text to be spoken. Local inference and network-based speech are separate parts of the app.
 
-### 1D CNN Architecture
-The model utilizes a "shrink time, grow features" pattern suitable for continuous sensor streams:
-* **Input:** `(Batch, 12, 128)`
-* **Conv Blocks:** Three stride-2 blocks with progressively decreasing kernel sizes (7 → 5 → 3) to capture wide temporal context early and refine local features later. 
-* **Mobile Optimizations:** Uses `BatchNorm` (highly stable on mobile vs. GroupNorm) and a fixed `AvgPool1d(kernel=16)` to avoid compatibility issues with mobile converters.
-* **Output:** Generates a 0–100 movement quality score based on softmax confidence probabilities.
+### What the score means
 
-### Export to Zetic
-The trained PyTorch model is packaged via `torch.export` into a deterministic `.pt2` graph, along with the saved global $\mu$ and $\sigma$ constants. This ensures identical preprocessing and ultra-fast local inference on the iOS client.
+The model is a PyTorch 1D CNN trained using the [JU-IMU dataset](https://github.com/youngminoh7/JU-IMU). It classifies recordings into the dataset's stroke and healthy classes. The app displays `Int(P(healthy) × 100)` as the prototype's score; it is not a percentage of recovery or a validated assessment of exercise form.
 
----
+For each recording, the app takes 12 accelerometer/gyroscope channels, applies the saved per-channel training mean and standard deviation, and interpolates to 128 timesteps. Three convolution blocks feed a two-class output. Training uses side-aware sensor selection to choose the affected limb; live inference expects wrist channels followed by bicep channels.
 
-## 📱 3. Swift App (Frontend & Orchestration)
-The iOS application serves as the command center for the patient, processing the hardware data and surfacing the AI insights.
+The main implementation details are in [the CNN](model/src/cnn.py), [training data preparation](model/src/data_loader.py), and [the Swift inference pipeline](app/Stroke%20Rehab/MovementQualityInference.swift).
 
-* **Real-Time Monitor:** Uses `CoreBluetooth` to subscribe to the ESP32's custom characteristic, caching the 80Hz stream into 128-timestep sliding windows.
-* **Local Inference via Zetic:** The Swift app holds the trained `.pt2` AI model. It passes the cached data window into the Zetic runtime, executing the CNN entirely on-device (no cloud computing delay).
-* **Exercise Guide & Gamification:** Translates the AI's 0–100 movement quality score into a visual performance dashboard.
-* **Audio Feedback:** Integrates **ElevenLabs TTS** to provide encouraging, real-time voice guidance to the patient based on their workout selection and current performance score.
+## References
 
-## 📚 References & Resources
+- Oh et al. (2024), *Investigating Activity Recognition for Hemiparetic Stroke Patients Using Wearable Sensors: A Deep Learning Approach with Data Augmentation*. [Paper](https://doi.org/10.3390/s24010210) · [JU-IMU dataset](https://github.com/youngminoh7/JU-IMU).
+- [MPU-6050 product specification](https://cdn.sparkfun.com/datasheets/Sensors/Accelerometers/RM-MPU-6000A.pdf).
 
-* **JU-IMU Dataset & AI Research:**
-  Oh, Y., Choi, S.-A., Shin, Y., Jeong, Y., Lim, J., & Kim, S. (2024). *Investigating Activity Recognition for Hemiparetic Stroke Patients Using Wearable Sensors: A Deep Learning Approach with Data Augmentation*. Sensors, 24(1), 210. [DOI: 10.3390/s24010210](https://doi.org/10.3390/s24010210)
-* **Dataset Repository:** [youngminoh7/JU-IMU on GitHub](https://github.com/youngminoh7/JU-IMU)
-* **Hardware Datasheet:** [MPU-6050 Product Specification (PDF)](https://cdn.sparkfun.com/datasheets/Sensors/Accelerometers/RM-MPU-6000A.pdf)
+## People
 
-<br>
-
-Made with ❤️ for LA Hacks 2026 by [Mj](https://github.com/majockbim), [Ethan](https://github.com/ethan-pham25), [Scott](https://github.com/Scott170c), [Ian](https://github.com/YodaLightsabr)
+The LA Hacks prototype was built by [Majock Bim](https://github.com/majockbim), [Ethan Pham](https://github.com/ethan-pham25), [Scott Chiang](https://github.com/Scott170c), and [Ian Madden](https://github.com/YodaLightsabr). The custom PCB is Majock's post-hackathon hardware iteration.
