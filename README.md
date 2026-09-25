@@ -16,6 +16,48 @@ The breadboard sits on the bicep and takes up a lot of space. After the hackatho
 
 **Current status:** the original prototype is demonstrated above. PCBWay has sent factory photos of the custom boards; they have not arrived yet, so I have not tested the PCB assembly. Physio is a development prototype, and its score has not been validated as a clinical measure.
 
+## From breadboard to PCB
+
+The first version was quick to wire up, but the breadboard was bulky on the arm. I wanted to keep the same basic sensor setup while replacing some of the jumper wiring with PCB traces and giving the modules a smaller base to sit on.
+
+<table>
+  <tr>
+    <td align="center"><img src="assets/photos/breadboard-prototype.jpg" width="320" alt="ESP32 breadboard prototype with jumper wires during power-on testing" /></td>
+    <td align="center"><img src="assets/photos/pcbway-assembly.jpg" width="420" alt="PCBWay factory photo of the Physio carrier PCB with socket headers assembled" /></td>
+  </tr>
+  <tr>
+    <td align="center">Breadboard power-on testing at the hackathon</td>
+    <td align="center">Custom carrier board, photographed at PCBWay</td>
+  </tr>
+</table>
+
+### The V2 carrier board
+
+I designed the board in **Altium Designer**. It has two copper layers, socket headers for the module connections, routed power and I²C signals, and four mounting holes. The ESP32 and sensor electronics remain on separate modules; the carrier provides their interconnections.
+
+| Part of the design | What is in this revision |
+| --- | --- |
+| Connections | Three 1×8 headers (`P1`–`P3`), one 1×5 header (`P4`), and one 1×2 header (`P5`), all at 2.54 mm pitch |
+| Routing | Shared power, ground, SDA, and SCL connections; the five-pin sensor connection includes the address-select connection |
+| Assembly | Through-hole socket headers, visible in the factory photos |
+| Mechanical layout | Four corner mounting holes and silkscreen labels for the connections |
+| Bring-up | Pending delivery; fit, power, sensor communication, and BLE streaming still need checking on the assembled board |
+
+The carrier does not include an onboard battery-charging circuit. The goal for this revision is reducing wiring and bulk; the photos show the carrier before the modules are fitted.
+
+[Hardware notes and design files](hardware/README.md) · [Altium project](hardware/altium/physio.PrjPcb) · [Gerbers and drill files](hardware/manufacturing/physio_gerbers.zip) · [BOM](hardware/manufacturing/physio_BOM.xlsx) · [Pick-and-place export](hardware/manufacturing/physio_pick_place.csv)
+
+### Supported by PCBWay
+
+**PCB fabrication and assembly for this iteration were sponsored by [PCBWay](https://www.pcbway.com/).** They contacted me after seeing the project and offered to support the next hardware version. That gave me the opportunity to take the breadboard design through PCB layout and manufacturing.
+
+<p align="center">
+  <img src="assets/photos/pcbway-top.jpg" width="420" alt="PCBWay factory photo showing the top of the Physio PCB and its socket headers" />
+  <img src="assets/photos/pcbway-bottom.jpg" width="280" alt="PCBWay factory photo showing the underside of the Physio PCB and through-hole solder joints" />
+</p>
+
+*Photos supplied by PCBWay before delivery. The boards have not arrived yet, so assembly inspection and electrical testing on my side are still ahead.*
+
 ## How it works
 
 ```text
